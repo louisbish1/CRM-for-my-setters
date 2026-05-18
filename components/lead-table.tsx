@@ -46,7 +46,7 @@ export function LeadTable({ leads, onChange, onArchive, canArchive }: LeadTableP
 
   if (!leads.length) {
     return (
-      <div className="rounded-[28px] border border-white/10 bg-white/[0.035] p-10 text-center shadow-glow backdrop-blur-xl">
+      <div className="rounded-[28px] border border-white/10 bg-white/[0.05] p-10 text-center shadow-glow backdrop-blur-xl">
         <p className="text-lg font-medium">No leads yet</p>
         <p className="mt-2 text-sm text-white/50">Add the first lead to start the board.</p>
       </div>
@@ -54,7 +54,7 @@ export function LeadTable({ leads, onChange, onArchive, canArchive }: LeadTableP
   }
 
   return (
-    <div className="overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.035] shadow-glow backdrop-blur-xl">
+    <div className="overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.05] shadow-glow backdrop-blur-xl">
       <div className="hidden max-h-[68vh] overflow-auto md:block">
         <table className="w-full min-w-[1100px] text-left text-sm">
           <thead className="sticky top-0 z-10 border-b border-white/10 bg-zinc-950/95 text-xs uppercase tracking-[0.2em] text-white/35 backdrop-blur-xl">

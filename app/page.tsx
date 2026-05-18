@@ -7,7 +7,6 @@ import { AddLeadDialog } from "@/components/add-lead-dialog";
 import { LeadTable } from "@/components/lead-table";
 import { NotificationButton } from "@/components/notification-button";
 import { Button } from "@/components/ui/button";
-import { demoLeads } from "@/lib/demo-leads";
 import { supabase } from "@/lib/supabase";
 import type { Lead } from "@/lib/types";
 
@@ -17,7 +16,6 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [userLabel, setUserLabel] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
-  const [previewMode, setPreviewMode] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -102,7 +100,7 @@ export default function DashboardPage() {
 
   return (
     <main className="mx-auto min-h-screen w-full max-w-7xl px-3 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] sm:px-6 sm:py-6 lg:px-8">
-      <header className="mb-4 flex flex-col gap-4 rounded-[28px] border border-white/10 bg-white/[0.035] p-4 shadow-glow backdrop-blur-xl sm:mb-6 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+      <header className="mb-4 flex flex-col gap-4 rounded-[28px] border border-white/10 bg-white/[0.05] p-4 shadow-glow backdrop-blur-xl sm:mb-6 sm:flex-row sm:items-center sm:justify-between sm:p-5">
         <div>
           <p className="text-xs font-medium uppercase tracking-[0.28em] text-white/35">Louis Bish internal board</p>
           <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">Setter Leads</h1>
@@ -110,28 +108,6 @@ export default function DashboardPage() {
         </div>
         <div className="grid gap-3 sm:flex sm:flex-wrap sm:items-center">
           <span className="w-fit rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-white/60">{userLabel}</span>
-          {!loading && leads.length === 0 ? (
-            <Button
-              variant="ghost"
-              onClick={() => {
-                setLeads(demoLeads);
-                setPreviewMode(true);
-              }}
-            >
-              Load demo preview
-            </Button>
-          ) : null}
-          {previewMode ? (
-            <Button
-              variant="ghost"
-              onClick={() => {
-                setLeads([]);
-                setPreviewMode(false);
-              }}
-            >
-              Clear demo
-            </Button>
-          ) : null}
           {isAdmin ? <NotificationButton /> : null}
           <AddLeadDialog creatorLabel={userLabel} onCreated={(lead) => setLeads((current) => [lead, ...current])} />
           <Button variant="ghost" onClick={signOut}>
@@ -141,11 +117,6 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      {previewMode ? (
-        <div className="mb-4 rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-3 text-sm text-white/55">
-          Demo preview only — these 20 leads are local to the page and are not saved to Supabase.
-        </div>
-      ) : null}
       <LeadTable leads={leads} onChange={updateLead} onArchive={archiveLead} canArchive={isAdmin} />
     </main>
   );
