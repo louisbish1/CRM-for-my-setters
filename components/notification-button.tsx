@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Bell } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,27 @@ export function NotificationButton() {
   const [loading, setLoading] = useState(false);
   const [enabled, setEnabled] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadExistingSubscription() {
+      if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+
+      const registration = await navigator.serviceWorker.getRegistration("/sw.js");
+      const subscription = await registration?.pushManager.getSubscription();
+
+      if (mounted && subscription) {
+        setEnabled(true);
+      }
+    }
+
+    loadExistingSubscription();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   async function enableNotifications() {
     setLoading(true);
