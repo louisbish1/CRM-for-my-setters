@@ -51,7 +51,9 @@ export function AddLeadDialog({ creatorLabel, onCreated }: AddLeadDialogProps) {
         need: form.need || null,
         estimated_value: form.estimated_value ? Number(form.estimated_value) : null,
         notes: form.notes || null,
-        created_by: user.user_metadata.full_name || user.email,
+        created_by_user_id: user.id,
+        created_by_email: user.email,
+        created_by_name: user.user_metadata.full_name || null,
       })
       .select()
       .single();

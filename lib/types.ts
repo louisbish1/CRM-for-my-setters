@@ -19,6 +19,9 @@ export type Lead = {
   estimated_value: number | null;
   status: LeadStatus;
   notes: string | null;
-  created_by: string;
+  created_by_user_id: string;
+  created_by_email: string;
+  created_by_name: string | null;
+  archived: boolean;
   created_at: string;
 };

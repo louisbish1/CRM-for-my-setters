@@ -1,7 +1,7 @@
 "use client";
 
 import { ChangeEvent } from "react";
-import { Trash2 } from "lucide-react";
+import { Archive } from "lucide-react";
 import { leadStatuses, type Lead, type LeadStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -17,10 +17,11 @@ const statusStyles: Record<LeadStatus, string> = {
 type LeadTableProps = {
   leads: Lead[];
   onChange: (id: string, patch: Partial<Pick<Lead, "status" | "notes" | "estimated_value" | "need">>) => void;
-  onDelete: (id: string) => void;
+  onArchive: (id: string) => void;
+  canArchive: boolean;
 };
 
-export function LeadTable({ leads, onChange, onDelete }: LeadTableProps) {
+export function LeadTable({ leads, onChange, onArchive, canArchive }: LeadTableProps) {
   function handleCurrencyChange(id: string, event: ChangeEvent<HTMLInputElement>) {
     const value = event.target.value;
     onChange(id, { estimated_value: value ? Number(value) : null });
@@ -49,7 +50,7 @@ export function LeadTable({ leads, onChange, onDelete }: LeadTableProps) {
               <th className="px-5 py-4">Notes</th>
               <th className="px-5 py-4">Created by</th>
               <th className="px-5 py-4">Created</th>
-              <th className="px-5 py-4"></th>
+              {canArchive ? <th className="px-5 py-4"></th> : null}
             </tr>
           </thead>
           <tbody>
@@ -101,17 +102,22 @@ export function LeadTable({ leads, onChange, onDelete }: LeadTableProps) {
                     onChange={(event) => onChange(lead.id, { notes: event.target.value || null })}
                   />
                 </td>
-                <td className="px-5 py-4 align-top text-white/65">{lead.created_by}</td>
-                <td className="px-5 py-4 align-top text-white/45">{new Date(lead.created_at).toLocaleDateString()}</td>
-                <td className="px-5 py-4 align-top">
-                  <button
-                    className="rounded-full p-2 text-white/35 transition hover:bg-rose-400/10 hover:text-rose-200"
-                    onClick={() => onDelete(lead.id)}
-                    aria-label={`Delete ${lead.business_name}`}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                <td className="px-5 py-4 align-top text-white/65">
+                  <div>{lead.created_by_name || lead.created_by_email}</div>
+                  {lead.created_by_name ? <div className="mt-1 text-xs text-white/35">{lead.created_by_email}</div> : null}
                 </td>
+                <td className="px-5 py-4 align-top text-white/45">{new Date(lead.created_at).toLocaleDateString()}</td>
+                {canArchive ? (
+                  <td className="px-5 py-4 align-top">
+                    <button
+                      className="rounded-full p-2 text-white/35 transition hover:bg-amber-400/10 hover:text-amber-200"
+                      onClick={() => onArchive(lead.id)}
+                      aria-label={`Archive ${lead.business_name}`}
+                    >
+                      <Archive className="h-4 w-4" />
+                    </button>
+                  </td>
+                ) : null}
               </tr>
             ))}
           </tbody>
@@ -161,16 +167,18 @@ export function LeadTable({ leads, onChange, onDelete }: LeadTableProps) {
                 placeholder="Notes"
               />
               <div className="flex justify-between text-xs text-white/40">
-                <span>{lead.created_by}</span>
+                <span>{lead.created_by_name || lead.created_by_email}</span>
                 <div className="flex items-center gap-2">
                   <span>{new Date(lead.created_at).toLocaleDateString()}</span>
-                  <button
-                    className="rounded-full p-2 text-white/35 transition hover:bg-rose-400/10 hover:text-rose-200"
-                    onClick={() => onDelete(lead.id)}
-                    aria-label={`Delete ${lead.business_name}`}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                  {canArchive ? (
+                    <button
+                      className="rounded-full p-2 text-white/35 transition hover:bg-amber-400/10 hover:text-amber-200"
+                      onClick={() => onArchive(lead.id)}
+                      aria-label={`Archive ${lead.business_name}`}
+                    >
+                      <Archive className="h-4 w-4" />
+                    </button>
+                  ) : null}
                 </div>
               </div>
             </div>

@@ -15,6 +15,7 @@ export default function DashboardPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [userLabel, setUserLabel] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
 
   useEffect(() => {
@@ -30,7 +31,7 @@ export default function DashboardPage() {
       const user = sessionData.session.user;
       const { data: approval } = await supabase
         .from("approved_users")
-        .select("email")
+        .select("email, is_admin")
         .eq("email", user.email)
         .maybeSingle();
 
@@ -41,9 +42,18 @@ export default function DashboardPage() {
       }
 
       const label = user.user_metadata.full_name || user.email || "Approved user";
-      if (mounted) setUserLabel(label);
+      if (mounted) {
+        setUserLabel(label);
+        setIsAdmin(Boolean(approval.is_admin));
+      }
 
-      const { data } = await supabase.from("leads").select("*").order("created_at", { ascending: false });
+      const { data } = await supabase
+        .from("leads")
+        .select(
+          "id, business_name, contact_name, phone, email, need, estimated_value, status, notes, created_by_user_id, created_by_email, created_by_name, archived, created_at",
+        )
+        .eq("archived", false)
+        .order("created_at", { ascending: false });
       if (mounted) {
         setLeads((data as Lead[]) || []);
         setLoading(false);
@@ -74,13 +84,13 @@ export default function DashboardPage() {
     router.replace("/login");
   }
 
-  async function deleteLead(id: string) {
+  async function archiveLead(id: string) {
     const lead = leads.find((item) => item.id === id);
-    if (!lead || !window.confirm(`Delete ${lead.business_name}?`)) return;
+    if (!lead || !window.confirm(`Archive ${lead.business_name}?`)) return;
 
     setLeads((current) => current.filter((item) => item.id !== id));
     if (!id.startsWith("demo-")) {
-      await supabase.from("leads").delete().eq("id", id);
+      await supabase.from("leads").update({ archived: true }).eq("id", id);
     }
   }
 
@@ -134,7 +144,7 @@ export default function DashboardPage() {
           Demo preview only — these 20 leads are local to the page and are not saved to Supabase.
         </div>
       ) : null}
-      <LeadTable leads={leads} onChange={updateLead} onDelete={deleteLead} />
+      <LeadTable leads={leads} onChange={updateLead} onArchive={archiveLead} canArchive={isAdmin} />
     </main>
   );
 }
