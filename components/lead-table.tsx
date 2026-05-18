@@ -140,58 +140,93 @@ export function LeadTable({ leads, onChange, onArchive, canArchive }: LeadTableP
       <div className="grid gap-4 p-4 md:hidden">
         {visibleLeads.map((lead) => (
           <article key={lead.id} className="rounded-[28px] border border-white/10 bg-black/20 p-4 shadow-sm">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <h2 className="font-medium">{lead.business_name}</h2>
-                <p className="mt-1 truncate text-sm text-white/45">{lead.contact_name || "No contact"}</p>
+            <div className="grid gap-4">
+              <div>
+                <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-white/35">Business</p>
+                <h2 className="mt-2 text-base font-medium">{lead.business_name}</h2>
               </div>
-              <select
-                className={cn("rounded-full border-0 px-3 py-2 text-xs font-medium outline-none", statusStyles[lead.status])}
-                value={lead.status}
-                onChange={(event) => onChange(lead.id, { status: event.target.value as LeadStatus })}
-              >
-                {leadStatuses.map((status) => (
-                  <option key={status} value={status} className="bg-zinc-950 text-white">
-                    {status}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="mt-4 grid gap-3 text-sm text-white/70">
-              <textarea
-                className="min-h-20 w-full resize-none rounded-2xl border border-transparent bg-transparent px-3 py-2 text-white/55 outline-none transition hover:bg-white/[0.025] focus:border-white/10 focus:bg-black/30 focus:text-white"
-                value={lead.need || ""}
-                onChange={(event) => onChange(lead.id, { need: event.target.value || null })}
-                placeholder="Add need"
-              />
-              <input
-                className="w-full rounded-xl border border-transparent bg-transparent px-3 py-2 text-white/55 outline-none transition hover:bg-white/[0.025] focus:border-white/10 focus:bg-black/30 focus:text-white"
-                type="number"
-                min="0"
-                step="0.01"
-                value={lead.estimated_value ?? ""}
-                onChange={(event) => handleCurrencyChange(lead.id, event)}
-                placeholder="Predicted value"
-              />
-              <textarea
-                className="min-h-24 w-full resize-none rounded-2xl border border-transparent bg-transparent px-3 py-2 text-white/55 outline-none transition hover:bg-white/[0.025] focus:border-white/10 focus:bg-black/30 focus:text-white"
-                value={lead.notes || ""}
-                onChange={(event) => onChange(lead.id, { notes: event.target.value || null })}
-                placeholder="Notes"
-              />
-              <div className="flex justify-between text-xs text-white/40">
-                <span>{lead.created_by_name || lead.created_by_email}</span>
-                <div className="flex items-center gap-2">
-                  <span>{new Date(lead.created_at).toLocaleDateString()}</span>
-                  {canArchive ? (
-                    <button
-                      className="rounded-full p-2 text-white/35 transition hover:bg-amber-400/10 hover:text-amber-200"
-                      onClick={() => onArchive(lead.id)}
-                      aria-label={`Archive ${lead.business_name}`}
-                    >
-                      <Archive className="h-4 w-4" />
-                    </button>
-                  ) : null}
+
+              <div className="grid gap-3 rounded-3xl border border-white/8 bg-white/[0.02] p-3">
+                <div>
+                  <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Contact</p>
+                  <div className="mt-2 grid gap-1 text-sm text-white/65">
+                    <span>{lead.contact_name || "No contact name"}</span>
+                    <span>{lead.phone || "No phone"}</span>
+                    <span className="truncate">{lead.email || "No email"}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-3xl border border-white/8 bg-white/[0.02] p-3">
+                  <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Predicted value</p>
+                  <input
+                    className="mt-2 w-full rounded-xl border border-transparent bg-transparent p-0 text-sm text-white/65 outline-none transition hover:bg-white/[0.025] focus:border-white/10 focus:bg-black/30 focus:px-3 focus:py-2 focus:text-white"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={lead.estimated_value ?? ""}
+                    onChange={(event) => handleCurrencyChange(lead.id, event)}
+                    placeholder="Add value"
+                  />
+                </div>
+
+                <div className="rounded-3xl border border-white/8 bg-white/[0.02] p-3">
+                  <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Status</p>
+                  <select
+                    className={cn("mt-2 rounded-full border-0 px-3 py-2 text-xs font-medium outline-none", statusStyles[lead.status])}
+                    value={lead.status}
+                    onChange={(event) => onChange(lead.id, { status: event.target.value as LeadStatus })}
+                  >
+                    {leadStatuses.map((status) => (
+                      <option key={status} value={status} className="bg-zinc-950 text-white">
+                        {status}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid gap-3">
+                <div>
+                  <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Need</p>
+                  <textarea
+                    className="min-h-20 w-full resize-none rounded-2xl border border-transparent bg-white/[0.02] px-3 py-3 text-white/55 outline-none transition hover:bg-white/[0.03] focus:border-white/10 focus:bg-black/30 focus:text-white"
+                    value={lead.need || ""}
+                    onChange={(event) => onChange(lead.id, { need: event.target.value || null })}
+                    placeholder="Add need"
+                  />
+                </div>
+                <div>
+                  <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Notes</p>
+                  <textarea
+                    className="min-h-24 w-full resize-none rounded-2xl border border-transparent bg-white/[0.02] px-3 py-3 text-white/55 outline-none transition hover:bg-white/[0.03] focus:border-white/10 focus:bg-black/30 focus:text-white"
+                    value={lead.notes || ""}
+                    onChange={(event) => onChange(lead.id, { notes: event.target.value || null })}
+                    placeholder="Notes"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 border-t border-white/8 pt-4 text-xs text-white/45">
+                <div>
+                  <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/30">Added by</p>
+                  <p className="mt-2 text-white/55">{lead.created_by_name || lead.created_by_email}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/30">Created</p>
+                  <div className="mt-2 flex items-center justify-end gap-2">
+                    <span>{new Date(lead.created_at).toLocaleDateString()}</span>
+                    {canArchive ? (
+                      <button
+                        className="rounded-full p-2 text-white/35 transition hover:bg-amber-400/10 hover:text-amber-200"
+                        onClick={() => onArchive(lead.id)}
+                        aria-label={`Archive ${lead.business_name}`}
+                      >
+                        <Archive className="h-4 w-4" />
+                      </button>
+                    ) : null}
+                  </div>
                 </div>
               </div>
             </div>
