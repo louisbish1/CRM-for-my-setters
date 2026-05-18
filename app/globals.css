@@ -34,6 +34,7 @@
 
 html {
   @apply dark;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
@@ -41,4 +42,11 @@ body {
   background-image:
     radial-gradient(circle at top left, rgba(255, 255, 255, 0.08), transparent 26%),
     radial-gradient(circle at top right, rgba(120, 119, 198, 0.12), transparent 24%);
+}
+
+button,
+input,
+select,
+textarea {
+  font-size: 16px;
 }

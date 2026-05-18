@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent } from "react";
+import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import { Archive } from "lucide-react";
 import { leadStatuses, type Lead, type LeadStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -22,6 +22,19 @@ type LeadTableProps = {
 };
 
 export function LeadTable({ leads, onChange, onArchive, canArchive }: LeadTableProps) {
+  const pageSize = 10;
+  const [page, setPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(leads.length / pageSize));
+
+  useEffect(() => {
+    setPage((current) => Math.min(current, totalPages));
+  }, [totalPages]);
+
+  const visibleLeads = useMemo(
+    () => leads.slice((page - 1) * pageSize, page * pageSize),
+    [leads, page],
+  );
+
   function handleCurrencyChange(id: string, event: ChangeEvent<HTMLInputElement>) {
     const value = event.target.value;
     onChange(id, { estimated_value: value ? Number(value) : null });
@@ -54,7 +67,7 @@ export function LeadTable({ leads, onChange, onArchive, canArchive }: LeadTableP
             </tr>
           </thead>
           <tbody>
-            {leads.map((lead) => (
+            {visibleLeads.map((lead) => (
               <tr key={lead.id} className="border-b border-white/5 transition hover:bg-white/[0.035] last:border-b-0">
                 <td className="px-5 py-4 align-top">
                   <div className="font-medium">{lead.business_name}</div>
@@ -125,12 +138,12 @@ export function LeadTable({ leads, onChange, onArchive, canArchive }: LeadTableP
       </div>
 
       <div className="grid gap-4 p-4 md:hidden">
-        {leads.map((lead) => (
-          <article key={lead.id} className="rounded-3xl border border-white/10 bg-black/20 p-4">
+        {visibleLeads.map((lead) => (
+          <article key={lead.id} className="rounded-[28px] border border-white/10 bg-black/20 p-4 shadow-sm">
             <div className="flex items-start justify-between gap-3">
-              <div>
+              <div className="min-w-0">
                 <h2 className="font-medium">{lead.business_name}</h2>
-                <p className="mt-1 text-sm text-white/45">{lead.contact_name || "No contact"}</p>
+                <p className="mt-1 truncate text-sm text-white/45">{lead.contact_name || "No contact"}</p>
               </div>
               <select
                 className={cn("rounded-full border-0 px-3 py-2 text-xs font-medium outline-none", statusStyles[lead.status])}
@@ -185,6 +198,30 @@ export function LeadTable({ leads, onChange, onArchive, canArchive }: LeadTableP
           </article>
         ))}
       </div>
+
+      {totalPages > 1 ? (
+        <div className="flex flex-col gap-3 border-t border-white/10 px-4 py-4 text-sm text-white/50 sm:flex-row sm:items-center sm:justify-between">
+          <span>
+            Page {page} of {totalPages}
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              className="rounded-full border border-white/10 px-4 py-2 transition hover:bg-white/[0.05] disabled:cursor-not-allowed disabled:opacity-40"
+              onClick={() => setPage((current) => Math.max(1, current - 1))}
+              disabled={page === 1}
+            >
+              Previous
+            </button>
+            <button
+              className="rounded-full border border-white/10 px-4 py-2 transition hover:bg-white/[0.05] disabled:cursor-not-allowed disabled:opacity-40"
+              onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+              disabled={page === totalPages}
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
