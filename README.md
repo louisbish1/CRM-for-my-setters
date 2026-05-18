@@ -8,6 +8,10 @@ Minimal internal lead board built with Next.js, TypeScript, Tailwind, shadcn-sty
 2. Fill in:
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+   - `NEXT_PUBLIC_VAPID_PUBLIC_KEY`
+   - `VAPID_PRIVATE_KEY`
+   - `VAPID_SUBJECT`
 3. Run the SQL in `supabase/schema.sql` inside Supabase SQL editor.
 4. Add approved users manually to `public.approved_users`.
 5. Create matching Supabase Auth users with email/password.

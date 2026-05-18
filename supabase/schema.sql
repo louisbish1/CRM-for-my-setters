@@ -42,6 +42,18 @@ create table if not exists public.leads (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.push_subscriptions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  user_email text not null,
+  endpoint text not null unique,
+  p256dh text not null,
+  auth text not null,
+  created_at timestamptz not null default now()
+);
+
+alter table public.push_subscriptions add column if not exists user_email text;
+
 alter table public.approved_users add column if not exists is_admin boolean not null default false;
 alter table public.leads add column if not exists created_by_user_id uuid;
 alter table public.leads add column if not exists created_by_email text;
@@ -51,6 +63,7 @@ alter table public.leads drop column if exists created_by;
 
 alter table public.approved_users enable row level security;
 alter table public.leads enable row level security;
+alter table public.push_subscriptions enable row level security;
 
 drop policy if exists "Approved users can read themselves" on public.approved_users;
 create policy "Approved users can read themselves"
@@ -149,6 +162,32 @@ using (
 insert into public.approved_users (email, is_admin)
 values ('louisbish0612@gmail.com', true)
 on conflict (email) do update set is_admin = excluded.is_admin;
+
+drop policy if exists "Admins can manage their own push subscriptions" on public.push_subscriptions;
+create policy "Admins can manage their own push subscriptions"
+on public.push_subscriptions
+for all
+to authenticated
+using (
+  user_id = auth.uid()
+  and user_email = auth.jwt() ->> 'email'
+  and exists (
+    select 1
+    from public.approved_users
+    where approved_users.email = auth.jwt() ->> 'email'
+      and approved_users.is_admin = true
+  )
+)
+with check (
+  user_id = auth.uid()
+  and user_email = auth.jwt() ->> 'email'
+  and exists (
+    select 1
+    from public.approved_users
+    where approved_users.email = auth.jwt() ->> 'email'
+      and approved_users.is_admin = true
+  )
+);
 
 -- Add allowed staff manually, for example:
 -- insert into public.approved_users (email) values ('setter@company.com');

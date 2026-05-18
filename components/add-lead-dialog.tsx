@@ -41,30 +41,24 @@ export function AddLeadDialog({ creatorLabel, onCreated }: AddLeadDialogProps) {
       return;
     }
 
-    const { data, error } = await supabase
-      .from("leads")
-      .insert({
-        business_name: form.business_name,
-        contact_name: form.contact_name || null,
-        phone: form.phone || null,
-        email: form.email || null,
-        need: form.need || null,
-        estimated_value: form.estimated_value ? Number(form.estimated_value) : null,
-        notes: form.notes || null,
-        created_by_user_id: user.id,
-        created_by_email: user.email,
-        created_by_name: user.user_metadata.full_name || null,
-      })
-      .select()
-      .single();
+    const { data: sessionData } = await supabase.auth.getSession();
+    const response = await fetch("/api/leads", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${sessionData.session?.access_token}`,
+      },
+      body: JSON.stringify(form),
+    });
+    const result = await response.json();
 
-    if (error) {
-      setError(error.message);
+    if (!response.ok) {
+      setError(result.error || "Could not save lead.");
       setLoading(false);
       return;
     }
 
-    onCreated(data as Lead);
+    onCreated(result.lead as Lead);
     setForm({ business_name: "", contact_name: "", phone: "", email: "", need: "", estimated_value: "", notes: "" });
     setLoading(false);
     setOpen(false);

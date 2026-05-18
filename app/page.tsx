@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { AddLeadDialog } from "@/components/add-lead-dialog";
 import { LeadTable } from "@/components/lead-table";
+import { NotificationButton } from "@/components/notification-button";
 import { Button } from "@/components/ui/button";
 import { demoLeads } from "@/lib/demo-leads";
 import { supabase } from "@/lib/supabase";
@@ -131,6 +132,7 @@ export default function DashboardPage() {
               Clear demo
             </Button>
           ) : null}
+          {isAdmin ? <NotificationButton /> : null}
           <AddLeadDialog creatorLabel={userLabel} onCreated={(lead) => setLeads((current) => [lead, ...current])} />
           <Button variant="ghost" onClick={signOut}>
             <LogOut className="h-4 w-4" />
