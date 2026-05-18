@@ -48,6 +48,13 @@ export async function POST(request: Request) {
   const { data: lead, error } = await supabase.from("leads").insert(payload).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
+  let notificationResult = {
+    adminCount: 0,
+    subscriptionCount: 0,
+    sentCount: 0,
+    failedCount: 0,
+  };
+
   try {
     const webpush = getWebPushClient();
     const { data: adminUsers } = await supabaseAdmin
@@ -56,12 +63,14 @@ export async function POST(request: Request) {
       .eq("is_admin", true);
 
     const adminEmails = (adminUsers || []).map((admin) => admin.email);
+    notificationResult.adminCount = adminEmails.length;
     const { data: subscriptions } = adminEmails.length
       ? await supabaseAdmin
           .from("push_subscriptions")
           .select("endpoint, p256dh, auth")
           .in("user_email", adminEmails)
       : { data: [] };
+    notificationResult.subscriptionCount = subscriptions?.length || 0;
 
     const creatorName = payload.created_by_name || payload.created_by_email;
     const notificationBody = `${creatorName} added a new lead: ${payload.business_name}${formatPredictedValue(payload.estimated_value)}`;
@@ -76,8 +85,10 @@ export async function POST(request: Request) {
             },
             JSON.stringify({ title: "New lead", body: notificationBody, url: "/" }),
           );
+          notificationResult.sentCount += 1;
         } catch {
           // Keep lead creation reliable even if one stored subscription has expired.
+          notificationResult.failedCount += 1;
         }
       }),
     );
@@ -85,5 +96,5 @@ export async function POST(request: Request) {
     // Lead creation should still succeed even if push is not configured yet.
   }
 
-  return NextResponse.json({ lead });
+  return NextResponse.json({ lead, notificationResult });
 }
