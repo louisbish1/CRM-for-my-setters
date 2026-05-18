@@ -40,6 +40,10 @@ export function LeadTable({ leads, onChange, onArchive, canArchive }: LeadTableP
     onChange(id, { estimated_value: value ? Number(value) : null });
   }
 
+  function creatorLabel(lead: Lead) {
+    return lead.created_by_name || lead.created_by_email;
+  }
+
   if (!leads.length) {
     return (
       <div className="rounded-[28px] border border-white/10 bg-white/[0.035] p-10 text-center shadow-glow backdrop-blur-xl">
@@ -116,8 +120,7 @@ export function LeadTable({ leads, onChange, onArchive, canArchive }: LeadTableP
                   />
                 </td>
                 <td className="px-5 py-4 align-top text-white/65">
-                  <div>{lead.created_by_name || lead.created_by_email}</div>
-                  {lead.created_by_name ? <div className="mt-1 text-xs text-white/35">{lead.created_by_email}</div> : null}
+                  <div>Added by {creatorLabel(lead)}</div>
                 </td>
                 <td className="px-5 py-4 align-top text-white/45">{new Date(lead.created_at).toLocaleDateString()}</td>
                 {canArchive ? (
@@ -187,7 +190,7 @@ export function LeadTable({ leads, onChange, onArchive, canArchive }: LeadTableP
                 </div>
               </div>
 
-              <div className="grid gap-3">
+              <div className="grid gap-4">
                 <div>
                   <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Need</p>
                   <textarea
@@ -208,10 +211,10 @@ export function LeadTable({ leads, onChange, onArchive, canArchive }: LeadTableP
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 border-t border-white/8 pt-4 text-xs text-white/45">
+              <div className="grid grid-cols-2 items-start gap-4 border-t border-white/8 pt-4 text-xs text-white/45">
                 <div>
                   <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/30">Added by</p>
-                  <p className="mt-2 text-white/55">{lead.created_by_name || lead.created_by_email}</p>
+                  <p className="mt-2 text-white/55">Added by {creatorLabel(lead)}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/30">Created</p>
