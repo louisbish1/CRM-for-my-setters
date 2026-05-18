@@ -41,27 +41,32 @@ export function AddLeadDialog({ creatorLabel, onCreated }: AddLeadDialogProps) {
       return;
     }
 
-    const { data: sessionData } = await supabase.auth.getSession();
-    const response = await fetch("/api/leads", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${sessionData.session?.access_token}`,
-      },
-      body: JSON.stringify(form),
-    });
-    const result = await response.json();
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const response = await fetch("/api/leads", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${sessionData.session?.access_token}`,
+        },
+        body: JSON.stringify(form),
+      });
+      const result = await response.json().catch(() => null);
 
-    if (!response.ok) {
-      setError(result.error || "Could not save lead.");
+      if (!response.ok) {
+        setError(result?.error || "Could not save lead.");
+        setLoading(false);
+        return;
+      }
+
+      onCreated(result.lead as Lead);
+      setForm({ business_name: "", contact_name: "", phone: "", email: "", need: "", estimated_value: "", notes: "" });
       setLoading(false);
-      return;
+      setOpen(false);
+    } catch {
+      setError("Could not save lead.");
+      setLoading(false);
     }
-
-    onCreated(result.lead as Lead);
-    setForm({ business_name: "", contact_name: "", phone: "", email: "", need: "", estimated_value: "", notes: "" });
-    setLoading(false);
-    setOpen(false);
   }
 
   return (

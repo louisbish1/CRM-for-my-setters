@@ -30,7 +30,6 @@ export async function POST(request: Request) {
   const user = userData.user;
   if (!user?.email) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const supabaseAdmin = createSupabaseAdminClient();
-  const webpush = getWebPushClient();
 
   const body = await request.json();
   const payload = {
@@ -49,37 +48,42 @@ export async function POST(request: Request) {
   const { data: lead, error } = await supabase.from("leads").insert(payload).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
-  const { data: adminUsers } = await supabaseAdmin
-    .from("approved_users")
-    .select("email")
-    .eq("is_admin", true);
+  try {
+    const webpush = getWebPushClient();
+    const { data: adminUsers } = await supabaseAdmin
+      .from("approved_users")
+      .select("email")
+      .eq("is_admin", true);
 
-  const adminEmails = (adminUsers || []).map((admin) => admin.email);
-  const { data: subscriptions } = adminEmails.length
-    ? await supabaseAdmin
-        .from("push_subscriptions")
-        .select("endpoint, p256dh, auth")
-        .in("user_email", adminEmails)
-    : { data: [] };
+    const adminEmails = (adminUsers || []).map((admin) => admin.email);
+    const { data: subscriptions } = adminEmails.length
+      ? await supabaseAdmin
+          .from("push_subscriptions")
+          .select("endpoint, p256dh, auth")
+          .in("user_email", adminEmails)
+      : { data: [] };
 
-  const creatorName = payload.created_by_name || payload.created_by_email;
-  const notificationBody = `${creatorName} added a new lead: ${payload.business_name}${formatPredictedValue(payload.estimated_value)}`;
+    const creatorName = payload.created_by_name || payload.created_by_email;
+    const notificationBody = `${creatorName} added a new lead: ${payload.business_name}${formatPredictedValue(payload.estimated_value)}`;
 
-  await Promise.all(
-    (subscriptions || []).map(async (subscription) => {
-      try {
-        await webpush.sendNotification(
-          {
-            endpoint: subscription.endpoint,
-            keys: { p256dh: subscription.p256dh, auth: subscription.auth },
-          },
-          JSON.stringify({ title: "New lead", body: notificationBody, url: "/" }),
-        );
-      } catch {
-        // Keep lead creation reliable even if one stored subscription has expired.
-      }
-    }),
-  );
+    await Promise.all(
+      (subscriptions || []).map(async (subscription) => {
+        try {
+          await webpush.sendNotification(
+            {
+              endpoint: subscription.endpoint,
+              keys: { p256dh: subscription.p256dh, auth: subscription.auth },
+            },
+            JSON.stringify({ title: "New lead", body: notificationBody, url: "/" }),
+          );
+        } catch {
+          // Keep lead creation reliable even if one stored subscription has expired.
+        }
+      }),
+    );
+  } catch {
+    // Lead creation should still succeed even if push is not configured yet.
+  }
 
   return NextResponse.json({ lead });
 }
