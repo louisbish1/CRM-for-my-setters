@@ -45,7 +45,7 @@ export function LeadTable({ leads, onChange, onArchive, canArchive }: LeadTableP
               <th className="px-5 py-4">Business</th>
               <th className="px-5 py-4">Contact</th>
               <th className="px-5 py-4">Need</th>
-              <th className="px-5 py-4">Value</th>
+              <th className="px-5 py-4">Predicted value</th>
               <th className="px-5 py-4">Status</th>
               <th className="px-5 py-4">Notes</th>
               <th className="px-5 py-4">Created by</th>
@@ -158,7 +158,7 @@ export function LeadTable({ leads, onChange, onArchive, canArchive }: LeadTableP
                 step="0.01"
                 value={lead.estimated_value ?? ""}
                 onChange={(event) => handleCurrencyChange(lead.id, event)}
-                placeholder="Estimated value"
+                placeholder="Predicted value"
               />
               <textarea
                 className="min-h-24 w-full resize-none rounded-2xl border border-transparent bg-transparent px-3 py-2 text-white/55 outline-none transition hover:bg-white/[0.025] focus:border-white/10 focus:bg-black/30 focus:text-white"

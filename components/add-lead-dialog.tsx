@@ -97,7 +97,7 @@ export function AddLeadDialog({ creatorLabel, onCreated }: AddLeadDialogProps) {
           <Input placeholder="Phone" value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} />
           <Input type="email" placeholder="Email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} />
           <Input placeholder="Need" value={form.need} onChange={(event) => setForm({ ...form, need: event.target.value })} />
-          <Input type="number" min="0" step="0.01" placeholder="Estimated value" value={form.estimated_value} onChange={(event) => setForm({ ...form, estimated_value: event.target.value })} />
+          <Input type="number" min="0" step="0.01" placeholder="Predicted value" value={form.estimated_value} onChange={(event) => setForm({ ...form, estimated_value: event.target.value })} />
           <div className="sm:col-span-2">
             <Textarea placeholder="Notes" value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} />
           </div>
