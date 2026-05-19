@@ -246,6 +246,10 @@ insert into public.approved_users (email, is_admin)
 values ('louisbish0612@gmail.com', true)
 on conflict (email) do update set is_admin = excluded.is_admin;
 
+insert into public.approved_users (email, is_admin)
+values ('georgerim7@gmail.com', false)
+on conflict (email) do update set is_admin = excluded.is_admin;
+
 drop policy if exists "Admins can manage their own push subscriptions" on public.push_subscriptions;
 create policy "Admins can manage their own push subscriptions"
 on public.push_subscriptions
