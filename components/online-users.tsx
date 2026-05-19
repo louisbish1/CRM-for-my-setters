@@ -5,6 +5,8 @@ import { Circle, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
 
+const adminEmails = new Set(["louisbish0612@gmail.com"]);
+
 type PresencePayload = {
   user_id: string;
   name: string;
@@ -31,6 +33,7 @@ type UserStatus = {
 
 type VisibleUser = {
   id: string;
+  email: string | undefined;
   name: string;
   role: string | undefined;
   lastSeenAt: string;
@@ -199,6 +202,7 @@ export function OnlineUsers({
     knownUsers.forEach((user) => {
       users.set(user.user_id, {
         id: user.user_id,
+        email: user.email,
         name: user.name || user.email || "Approved user",
         role: user.role || undefined,
         lastSeenAt: user.last_seen_at,
@@ -209,6 +213,7 @@ export function OnlineUsers({
     onlineUsers.forEach((user) => {
       users.set(user.id, {
         id: user.id,
+        email: undefined,
         name: user.name,
         role: user.role,
         lastSeenAt: user.onlineAt,
@@ -219,6 +224,7 @@ export function OnlineUsers({
     if (!users.has(currentUserId)) {
       users.set(currentUserId, {
         id: currentUserId,
+        email: userEmail,
         name: userLabel,
         role: userRole,
         lastSeenAt: new Date().toISOString(),
@@ -258,7 +264,9 @@ export function OnlineUsers({
                     {user.id === currentUserId ? <span className="text-white/40"> (you)</span> : null}
                   </span>
                   <span className="mt-1 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs text-white/40">
-                    <span className="shrink-0 capitalize text-white/50">{user.role || "setter"}</span>
+                    <span className="shrink-0 capitalize text-white/50">
+                      {user.role || (user.email && adminEmails.has(user.email.toLowerCase()) ? "admin" : "setter")}
+                    </span>
                     {user.online ? "Online now" : `Last online ${formatLastSeen(user.lastSeenAt)}`}
                   </span>
                 </span>
