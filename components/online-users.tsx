@@ -216,7 +216,7 @@ export function OnlineUsers({
       </Button>
 
       {open ? (
-        <div className="absolute right-0 z-20 mt-2 w-72 rounded-2xl border border-white/10 bg-zinc-950/95 p-2 shadow-glow backdrop-blur-xl">
+        <div className="absolute right-0 z-50 mt-2 w-72 rounded-2xl border border-white/10 bg-zinc-950/95 p-2 shadow-glow backdrop-blur-xl">
           <div className="px-3 py-2 text-xs font-medium uppercase tracking-[0.22em] text-white/35">Team status</div>
           <div className="grid gap-1">
             {visibleUsers.map((user) => (
