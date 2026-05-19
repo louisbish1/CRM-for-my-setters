@@ -262,22 +262,13 @@ export function OnlineUsers({
                     {user.online ? "Online now" : `Last online ${formatLastSeen(user.lastSeenAt)}`}
                   </span>
                 </span>
-                <span
+                <Circle
                   className={
                     user.online
-                      ? "inline-flex h-7 shrink-0 items-center gap-1.5 rounded-full bg-emerald-400/10 px-2 text-xs font-medium text-emerald-200"
-                      : "inline-flex h-7 shrink-0 items-center gap-1.5 rounded-full bg-white/5 px-2 text-xs font-medium text-white/35"
+                      ? "h-2.5 w-2.5 shrink-0 fill-emerald-300 text-emerald-300"
+                      : "h-2.5 w-2.5 shrink-0 fill-white/25 text-white/25"
                   }
-                >
-                  <Circle
-                    className={
-                      user.online
-                        ? "h-2 w-2 fill-emerald-300 text-emerald-300"
-                        : "h-2 w-2 fill-white/25 text-white/25"
-                    }
-                  />
-                  {user.online ? "Live" : "Away"}
-                </span>
+                />
               </div>
             ))}
           </div>
