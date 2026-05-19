@@ -14,6 +14,12 @@ const statusStyles: Record<LeadStatus, string> = {
   Lost: "bg-rose-400/15 text-rose-200",
 };
 
+const inlineInputClass =
+  "w-full rounded-md border border-transparent bg-transparent px-1 py-1 text-sm text-white/65 outline-none transition placeholder:text-white/25 disabled:cursor-default disabled:opacity-55 focus:border-white/10 focus:bg-white/[0.025] focus:text-white";
+
+const inlineTextareaClass =
+  "min-h-28 w-full resize-y rounded-md border border-transparent bg-transparent px-1 py-1 text-sm text-white/65 outline-none transition placeholder:text-white/25 disabled:cursor-default disabled:resize-none disabled:opacity-55 focus:border-white/10 focus:bg-white/[0.025] focus:text-white";
+
 type LeadTableProps = {
   leads: Lead[];
   currentUserId: string;
@@ -107,16 +113,10 @@ export function LeadTable({ leads, currentUserId, onChange, onArchive, canArchiv
 
             {expandedLeadId === lead.id ? (
               <div className="grid gap-4 border-t border-white/10 bg-black/20 px-4 py-4 sm:grid-cols-2 sm:px-5 lg:grid-cols-4">
-                {canEditLead(lead) ? null : (
-                  <p className="rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-white/45 sm:col-span-2 lg:col-span-4">
-                    Only the person who added this lead can edit it.
-                  </p>
-                )}
-
                 <label className="grid gap-2 sm:col-span-2">
                   <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Lead name</span>
                   <input
-                    className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-white/70 outline-none transition disabled:cursor-not-allowed disabled:opacity-45 focus:border-white/20 focus:bg-black/30 focus:text-white"
+                    className={inlineInputClass}
                     value={lead.business_name}
                     onChange={(event) => onChange(lead.id, { business_name: event.target.value })}
                     placeholder="Lead name"
@@ -127,7 +127,7 @@ export function LeadTable({ leads, currentUserId, onChange, onArchive, canArchiv
                 <label className="grid gap-2">
                   <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Contact name</span>
                   <input
-                    className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-white/70 outline-none transition disabled:cursor-not-allowed disabled:opacity-45 focus:border-white/20 focus:bg-black/30 focus:text-white"
+                    className={inlineInputClass}
                     value={lead.contact_name || ""}
                     onChange={(event) => onChange(lead.id, { contact_name: event.target.value || null })}
                     placeholder="Contact name"
@@ -138,7 +138,7 @@ export function LeadTable({ leads, currentUserId, onChange, onArchive, canArchiv
                 <label className="grid gap-2">
                   <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Phone number</span>
                   <input
-                    className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-white/70 outline-none transition disabled:cursor-not-allowed disabled:opacity-45 focus:border-white/20 focus:bg-black/30 focus:text-white"
+                    className={inlineInputClass}
                     value={lead.phone || ""}
                     onChange={(event) => onChange(lead.id, { phone: event.target.value || null })}
                     placeholder="Phone number"
@@ -149,7 +149,7 @@ export function LeadTable({ leads, currentUserId, onChange, onArchive, canArchiv
                 <label className="grid gap-2 sm:col-span-2">
                   <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Email</span>
                   <input
-                    className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-white/70 outline-none transition disabled:cursor-not-allowed disabled:opacity-45 focus:border-white/20 focus:bg-black/30 focus:text-white"
+                    className={inlineInputClass}
                     type="email"
                     value={lead.email || ""}
                     onChange={(event) => onChange(lead.id, { email: event.target.value || null })}
@@ -168,7 +168,7 @@ export function LeadTable({ leads, currentUserId, onChange, onArchive, canArchiv
                 <label className="grid gap-2">
                   <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Predicted value</span>
                   <input
-                    className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-white/70 outline-none transition disabled:cursor-not-allowed disabled:opacity-45 focus:border-white/20 focus:bg-black/30 focus:text-white"
+                    className={inlineInputClass}
                     type="number"
                     min="0"
                     step="0.01"
@@ -201,7 +201,7 @@ export function LeadTable({ leads, currentUserId, onChange, onArchive, canArchiv
                 <label className="grid gap-2 sm:col-span-2">
                   <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Lead description</span>
                   <textarea
-                    className="min-h-36 w-full resize-y rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-3 text-sm text-white/70 outline-none transition disabled:cursor-not-allowed disabled:resize-none disabled:opacity-45 focus:border-white/20 focus:bg-black/30 focus:text-white"
+                    className={inlineTextareaClass}
                     value={lead.need || ""}
                     onChange={(event) => onChange(lead.id, { need: event.target.value || null })}
                     placeholder="Add description"
@@ -212,7 +212,7 @@ export function LeadTable({ leads, currentUserId, onChange, onArchive, canArchiv
                 <label className="grid gap-2 sm:col-span-2">
                   <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Notes</span>
                   <textarea
-                    className="min-h-36 w-full resize-y rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-3 text-sm text-white/70 outline-none transition disabled:cursor-not-allowed disabled:resize-none disabled:opacity-45 focus:border-white/20 focus:bg-black/30 focus:text-white"
+                    className={inlineTextareaClass}
                     value={lead.notes || ""}
                     onChange={(event) => onChange(lead.id, { notes: event.target.value || null })}
                     placeholder="Add notes"
