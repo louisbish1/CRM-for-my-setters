@@ -7,6 +7,7 @@ import { LogOut } from "lucide-react";
 import { AddLeadDialog } from "@/components/add-lead-dialog";
 import { LeadTable } from "@/components/lead-table";
 import { NotificationButton } from "@/components/notification-button";
+import { OnlineUsers } from "@/components/online-users";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
 import type { Lead } from "@/lib/types";
@@ -16,6 +17,7 @@ export default function DashboardPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState("");
+  const [currentUserEmail, setCurrentUserEmail] = useState("");
   const [userLabel, setUserLabel] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -45,6 +47,7 @@ export default function DashboardPage() {
       const label = user.user_metadata.full_name || user.email || "Approved user";
       if (mounted) {
         setCurrentUserId(user.id);
+        setCurrentUserEmail(user.email || "");
         setUserLabel(label);
         setIsAdmin(Boolean(approval.is_admin));
       }
@@ -129,6 +132,7 @@ export default function DashboardPage() {
         </div>
         <div className="grid gap-3 sm:flex sm:flex-wrap sm:items-center">
           <span className="w-fit rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-white/60">{userLabel}</span>
+          <OnlineUsers currentUserId={currentUserId} userEmail={currentUserEmail} userLabel={userLabel} />
           {isAdmin ? <NotificationButton /> : null}
           <AddLeadDialog creatorLabel={userLabel} onCreated={(lead) => setLeads((current) => [lead, ...current])} />
           <Button variant="ghost" onClick={signOut}>
