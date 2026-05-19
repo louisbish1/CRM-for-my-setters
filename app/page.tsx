@@ -161,7 +161,12 @@ export default function DashboardPage() {
             <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
           </Button>
           <span className="w-fit rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-white/60">{userLabel}</span>
-          <OnlineUsers currentUserId={currentUserId} userEmail={currentUserEmail} userLabel={userLabel} />
+          <OnlineUsers
+            currentUserId={currentUserId}
+            userEmail={currentUserEmail}
+            userLabel={userLabel}
+            userRole={isAdmin ? "admin" : "setter"}
+          />
           {isAdmin ? <NotificationButton /> : null}
           <AddLeadDialog creatorLabel={userLabel} onCreated={(lead) => setLeads((current) => [lead, ...current])} />
           <Button variant="ghost" onClick={signOut}>

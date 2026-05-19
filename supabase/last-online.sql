@@ -2,9 +2,12 @@ create table if not exists public.user_status (
   user_id uuid primary key references auth.users(id) on delete cascade,
   email text not null,
   name text,
+  role text,
   last_seen_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.user_status add column if not exists role text;
 
 alter table public.user_status enable row level security;
 

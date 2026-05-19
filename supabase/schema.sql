@@ -56,11 +56,13 @@ create table if not exists public.user_status (
   user_id uuid primary key references auth.users(id) on delete cascade,
   email text not null,
   name text,
+  role text,
   last_seen_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 
 alter table public.push_subscriptions add column if not exists user_email text;
+alter table public.user_status add column if not exists role text;
 
 alter table public.approved_users add column if not exists is_admin boolean not null default false;
 alter table public.leads add column if not exists created_by_user_id uuid;
