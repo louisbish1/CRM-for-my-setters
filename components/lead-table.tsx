@@ -14,11 +14,8 @@ const statusStyles: Record<LeadStatus, string> = {
   Lost: "bg-rose-400/15 text-rose-200",
 };
 
-const inlineInputClass =
-  "w-full rounded-md border border-transparent bg-transparent px-1 py-1 text-sm text-white/65 outline-none transition placeholder:text-white/25 disabled:cursor-default disabled:opacity-55 focus:border-white/10 focus:bg-white/[0.025] focus:text-white";
-
-const inlineTextareaClass =
-  "min-h-28 w-full resize-y rounded-md border border-transparent bg-transparent px-1 py-1 text-sm text-white/65 outline-none transition placeholder:text-white/25 disabled:cursor-default disabled:resize-none disabled:opacity-55 focus:border-white/10 focus:bg-white/[0.025] focus:text-white";
+const editableTextClass =
+  "w-full border-0 bg-transparent p-0 text-sm text-white/65 outline-none placeholder:text-white/35 disabled:cursor-default disabled:opacity-100 focus:text-white";
 
 type LeadTableProps = {
   leads: Lead[];
@@ -83,99 +80,107 @@ export function LeadTable({ leads, currentUserId, onChange, onArchive, canArchiv
   return (
     <div className="overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.05] shadow-glow backdrop-blur-xl">
       <div className="divide-y divide-white/10">
-        {visibleLeads.map((lead) => (
-          <article key={lead.id} className="transition hover:bg-white/[0.025]">
-            <button
-              type="button"
-              className="flex w-full items-center gap-3 px-4 py-4 text-left sm:px-5"
-              onClick={() => setExpandedLeadId((current) => (current === lead.id ? null : lead.id))}
-              aria-expanded={expandedLeadId === lead.id}
-            >
-              <span className="min-w-0 flex-1">
-                <span className="flex min-w-0 flex-wrap items-center gap-2">
-                  <span className="truncate text-base font-medium text-white">{lead.business_name}</span>
-                  <span className={cn("rounded-full px-2.5 py-1 text-[11px] font-medium", statusStyles[lead.status])}>
-                    {lead.status}
+        {visibleLeads.map((lead) => {
+          const isExpanded = expandedLeadId === lead.id;
+          const isEditable = canEditLead(lead);
+
+          return (
+            <article key={lead.id} className="transition hover:bg-white/[0.025]">
+              <div
+                className="flex w-full items-center gap-3 px-4 py-4 text-left sm:px-5"
+                onClick={() => setExpandedLeadId((current) => (current === lead.id ? null : lead.id))}
+                role="button"
+                tabIndex={0}
+                aria-expanded={isExpanded}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    setExpandedLeadId((current) => (current === lead.id ? null : lead.id));
+                  }
+                }}
+              >
+                <span className="min-w-0 flex-1">
+                  <span className="flex min-w-0 flex-wrap items-center gap-2">
+                    {isExpanded && isEditable ? (
+                      <input
+                        className="min-w-0 flex-1 border-0 bg-transparent p-0 text-base font-medium text-white outline-none"
+                        value={lead.business_name}
+                        onChange={(event) => onChange(lead.id, { business_name: event.target.value })}
+                        onClick={(event) => event.stopPropagation()}
+                        aria-label="Lead name"
+                      />
+                    ) : (
+                      <span className="truncate text-base font-medium text-white">{lead.business_name}</span>
+                    )}
+                    <span className={cn("rounded-full px-2.5 py-1 text-[11px] font-medium", statusStyles[lead.status])}>
+                      {lead.status}
+                    </span>
                   </span>
+                  <span className="mt-1 block truncate text-sm text-white/45">{compactDetail(lead)}</span>
                 </span>
-                <span className="mt-1 block truncate text-sm text-white/45">{compactDetail(lead)}</span>
-              </span>
-              <span className="hidden text-sm text-white/45 sm:block">
-                {lead.estimated_value ? `£${lead.estimated_value.toLocaleString()}` : "No value"}
-              </span>
-              <ChevronDown
-                className={cn(
-                  "h-4 w-4 shrink-0 text-white/40 transition",
-                  expandedLeadId === lead.id ? "rotate-180 text-white/70" : null,
-                )}
-              />
-            </button>
+                <span className="hidden text-sm text-white/45 sm:block">
+                  {lead.estimated_value ? `£${lead.estimated_value.toLocaleString()}` : "No value"}
+                </span>
+                <ChevronDown
+                  className={cn(
+                    "h-4 w-4 shrink-0 text-white/40 transition",
+                    isExpanded ? "rotate-180 text-white/70" : null,
+                  )}
+                />
+              </div>
 
-            {expandedLeadId === lead.id ? (
+              {isExpanded ? (
               <div className="grid gap-4 border-t border-white/10 bg-black/20 px-4 py-4 sm:grid-cols-2 sm:px-5 lg:grid-cols-4">
-                <label className="grid gap-2 sm:col-span-2">
-                  <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Lead name</span>
-                  <input
-                    className={inlineInputClass}
-                    value={lead.business_name}
-                    onChange={(event) => onChange(lead.id, { business_name: event.target.value })}
-                    placeholder="Lead name"
-                    disabled={!canEditLead(lead)}
-                  />
-                </label>
-
-                <label className="grid gap-2">
-                  <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Contact name</span>
-                  <input
-                    className={inlineInputClass}
-                    value={lead.contact_name || ""}
-                    onChange={(event) => onChange(lead.id, { contact_name: event.target.value || null })}
-                    placeholder="Contact name"
-                    disabled={!canEditLead(lead)}
-                  />
-                </label>
-
-                <label className="grid gap-2">
-                  <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Phone number</span>
-                  <input
-                    className={inlineInputClass}
-                    value={lead.phone || ""}
-                    onChange={(event) => onChange(lead.id, { phone: event.target.value || null })}
-                    placeholder="Phone number"
-                    disabled={!canEditLead(lead)}
-                  />
-                </label>
-
-                <label className="grid gap-2 sm:col-span-2">
-                  <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Email</span>
-                  <input
-                    className={inlineInputClass}
-                    type="email"
-                    value={lead.email || ""}
-                    onChange={(event) => onChange(lead.id, { email: event.target.value || null })}
-                    placeholder="Email"
-                    disabled={!canEditLead(lead)}
-                  />
-                </label>
-
-                <div className="grid content-start gap-2">
-                  <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Created</p>
-                  <p className="text-sm text-white/55">
-                    {new Date(lead.created_at).toLocaleDateString()} by {creatorLabel(lead)}
-                  </p>
+                <div className="grid gap-3 sm:col-span-2 lg:col-span-1">
+                  <div>
+                    <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Contact</p>
+                    <div className="mt-2 grid gap-1 text-sm text-white/65">
+                      <input
+                        className={editableTextClass}
+                        value={lead.contact_name || ""}
+                        onChange={(event) => onChange(lead.id, { contact_name: event.target.value || null })}
+                        placeholder="No contact name"
+                        disabled={!isEditable}
+                        aria-label="Contact name"
+                      />
+                      <input
+                        className={editableTextClass}
+                        value={lead.phone || ""}
+                        onChange={(event) => onChange(lead.id, { phone: event.target.value || null })}
+                        placeholder="No phone"
+                        disabled={!isEditable}
+                        aria-label="Phone"
+                      />
+                      <input
+                        className={cn(editableTextClass, "break-all")}
+                        type="email"
+                        value={lead.email || ""}
+                        onChange={(event) => onChange(lead.id, { email: event.target.value || null })}
+                        placeholder="No email"
+                        disabled={!isEditable}
+                        aria-label="Email"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Created</p>
+                    <p className="mt-2 text-sm text-white/55">
+                      {new Date(lead.created_at).toLocaleDateString()} by {creatorLabel(lead)}
+                    </p>
+                  </div>
                 </div>
 
                 <label className="grid gap-2">
                   <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Predicted value</span>
                   <input
-                    className={inlineInputClass}
+                    className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-white/70 outline-none transition disabled:cursor-not-allowed disabled:opacity-45 focus:border-white/20 focus:bg-black/30 focus:text-white"
                     type="number"
                     min="0"
                     step="0.01"
                     value={lead.estimated_value ?? ""}
                     onChange={(event) => handleCurrencyChange(lead.id, event)}
                     placeholder="Add value"
-                    disabled={!canEditLead(lead)}
+                    disabled={!isEditable}
                   />
                 </label>
 
@@ -188,7 +193,7 @@ export function LeadTable({ leads, currentUserId, onChange, onArchive, canArchiv
                     )}
                     value={lead.status}
                     onChange={(event) => onChange(lead.id, { status: event.target.value as LeadStatus })}
-                    disabled={!canEditLead(lead)}
+                    disabled={!isEditable}
                   >
                     {leadStatuses.map((status) => (
                       <option key={status} value={status} className="bg-zinc-950 text-white">
@@ -201,22 +206,22 @@ export function LeadTable({ leads, currentUserId, onChange, onArchive, canArchiv
                 <label className="grid gap-2 sm:col-span-2">
                   <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Lead description</span>
                   <textarea
-                    className={inlineTextareaClass}
+                    className="min-h-36 w-full resize-y rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-3 text-sm text-white/70 outline-none transition disabled:cursor-not-allowed disabled:resize-none disabled:opacity-45 focus:border-white/20 focus:bg-black/30 focus:text-white"
                     value={lead.need || ""}
                     onChange={(event) => onChange(lead.id, { need: event.target.value || null })}
                     placeholder="Add description"
-                    disabled={!canEditLead(lead)}
+                    disabled={!isEditable}
                   />
                 </label>
 
                 <label className="grid gap-2 sm:col-span-2">
                   <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Notes</span>
                   <textarea
-                    className={inlineTextareaClass}
+                    className="min-h-36 w-full resize-y rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-3 text-sm text-white/70 outline-none transition disabled:cursor-not-allowed disabled:resize-none disabled:opacity-45 focus:border-white/20 focus:bg-black/30 focus:text-white"
                     value={lead.notes || ""}
                     onChange={(event) => onChange(lead.id, { notes: event.target.value || null })}
                     placeholder="Add notes"
-                    disabled={!canEditLead(lead)}
+                    disabled={!isEditable}
                   />
                 </label>
 
@@ -233,9 +238,10 @@ export function LeadTable({ leads, currentUserId, onChange, onArchive, canArchiv
                   </div>
                 ) : null}
               </div>
-            ) : null}
-          </article>
-        ))}
+              ) : null}
+            </article>
+          );
+        })}
       </div>
 
       {totalPages > 1 ? (
