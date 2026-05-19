@@ -101,7 +101,8 @@ with check (
 );
 
 drop policy if exists "Approved users can update leads" on public.leads;
-create policy "Approved users can update leads"
+drop policy if exists "Lead creators can update their leads" on public.leads;
+create policy "Lead creators can update their leads"
 on public.leads
 for update
 to authenticated
@@ -111,6 +112,15 @@ using (
     from public.approved_users
     where approved_users.email = auth.jwt() ->> 'email'
   )
+  and (
+    created_by_user_id = auth.uid()
+    or exists (
+      select 1
+      from public.approved_users
+      where approved_users.email = auth.jwt() ->> 'email'
+        and approved_users.is_admin = true
+    )
+  )
   and archived = false
 )
 with check (
@@ -118,6 +128,15 @@ with check (
     select 1
     from public.approved_users
     where approved_users.email = auth.jwt() ->> 'email'
+  )
+  and (
+    created_by_user_id = auth.uid()
+    or exists (
+      select 1
+      from public.approved_users
+      where approved_users.email = auth.jwt() ->> 'email'
+        and approved_users.is_admin = true
+    )
   )
   and archived = false
 );
@@ -142,6 +161,7 @@ with check (
     where approved_users.email = auth.jwt() ->> 'email'
       and approved_users.is_admin = true
   )
+  and archived = true
 );
 
 drop policy if exists "Approved users can delete leads" on public.leads;

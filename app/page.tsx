@@ -15,6 +15,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentUserId, setCurrentUserId] = useState("");
   const [userLabel, setUserLabel] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -43,6 +44,7 @@ export default function DashboardPage() {
 
       const label = user.user_metadata.full_name || user.email || "Approved user";
       if (mounted) {
+        setCurrentUserId(user.id);
         setUserLabel(label);
         setIsAdmin(Boolean(approval.is_admin));
       }
@@ -72,7 +74,15 @@ export default function DashboardPage() {
     };
   }, [router]);
 
-  async function updateLead(id: string, patch: Partial<Pick<Lead, "status" | "notes" | "estimated_value" | "need">>) {
+  async function updateLead(
+    id: string,
+    patch: Partial<
+      Pick<Lead, "business_name" | "contact_name" | "phone" | "email" | "status" | "notes" | "estimated_value" | "need">
+    >,
+  ) {
+    const lead = leads.find((item) => item.id === id);
+    if (!lead || (!isAdmin && lead.created_by_user_id !== currentUserId)) return;
+
     setLeads((current) => current.map((lead) => (lead.id === id ? { ...lead, ...patch } : lead)));
     if (!id.startsWith("demo-")) {
       await supabase.from("leads").update(patch).eq("id", id);
@@ -128,7 +138,13 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <LeadTable leads={leads} onChange={updateLead} onArchive={archiveLead} canArchive={isAdmin} />
+      <LeadTable
+        leads={leads}
+        currentUserId={currentUserId}
+        onChange={updateLead}
+        onArchive={archiveLead}
+        canArchive={isAdmin}
+      />
     </main>
   );
 }

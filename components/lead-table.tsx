@@ -16,12 +16,18 @@ const statusStyles: Record<LeadStatus, string> = {
 
 type LeadTableProps = {
   leads: Lead[];
-  onChange: (id: string, patch: Partial<Pick<Lead, "status" | "notes" | "estimated_value" | "need">>) => void;
+  currentUserId: string;
+  onChange: (
+    id: string,
+    patch: Partial<
+      Pick<Lead, "business_name" | "contact_name" | "phone" | "email" | "status" | "notes" | "estimated_value" | "need">
+    >,
+  ) => void;
   onArchive: (id: string) => void;
   canArchive: boolean;
 };
 
-export function LeadTable({ leads, onChange, onArchive, canArchive }: LeadTableProps) {
+export function LeadTable({ leads, currentUserId, onChange, onArchive, canArchive }: LeadTableProps) {
   const pageSize = 10;
   const [page, setPage] = useState(1);
   const [expandedLeadId, setExpandedLeadId] = useState<string | null>(null);
@@ -53,6 +59,10 @@ export function LeadTable({ leads, onChange, onArchive, canArchive }: LeadTableP
 
   function compactDetail(lead: Lead) {
     return lead.contact_name || lead.email || lead.phone || "No contact details";
+  }
+
+  function canEditLead(lead: Lead) {
+    return canArchive || lead.created_by_user_id === currentUserId;
   }
 
   if (!leads.length) {
@@ -97,42 +107,88 @@ export function LeadTable({ leads, onChange, onArchive, canArchive }: LeadTableP
 
             {expandedLeadId === lead.id ? (
               <div className="grid gap-4 border-t border-white/10 bg-black/20 px-4 py-4 sm:grid-cols-2 sm:px-5 lg:grid-cols-4">
-                <div className="grid gap-3 sm:col-span-2 lg:col-span-1">
-                  <div>
-                    <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Contact</p>
-                    <div className="mt-2 grid gap-1 text-sm text-white/65">
-                      <span>{lead.contact_name || "No contact name"}</span>
-                      <span>{lead.phone || "No phone"}</span>
-                      <span className="break-all">{lead.email || "No email"}</span>
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Created</p>
-                    <p className="mt-2 text-sm text-white/55">
-                      {new Date(lead.created_at).toLocaleDateString()} by {creatorLabel(lead)}
-                    </p>
-                  </div>
+                {canEditLead(lead) ? null : (
+                  <p className="rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-white/45 sm:col-span-2 lg:col-span-4">
+                    Only the person who added this lead can edit it.
+                  </p>
+                )}
+
+                <label className="grid gap-2 sm:col-span-2">
+                  <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Lead name</span>
+                  <input
+                    className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-white/70 outline-none transition disabled:cursor-not-allowed disabled:opacity-45 focus:border-white/20 focus:bg-black/30 focus:text-white"
+                    value={lead.business_name}
+                    onChange={(event) => onChange(lead.id, { business_name: event.target.value })}
+                    placeholder="Lead name"
+                    disabled={!canEditLead(lead)}
+                  />
+                </label>
+
+                <label className="grid gap-2">
+                  <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Contact name</span>
+                  <input
+                    className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-white/70 outline-none transition disabled:cursor-not-allowed disabled:opacity-45 focus:border-white/20 focus:bg-black/30 focus:text-white"
+                    value={lead.contact_name || ""}
+                    onChange={(event) => onChange(lead.id, { contact_name: event.target.value || null })}
+                    placeholder="Contact name"
+                    disabled={!canEditLead(lead)}
+                  />
+                </label>
+
+                <label className="grid gap-2">
+                  <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Phone number</span>
+                  <input
+                    className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-white/70 outline-none transition disabled:cursor-not-allowed disabled:opacity-45 focus:border-white/20 focus:bg-black/30 focus:text-white"
+                    value={lead.phone || ""}
+                    onChange={(event) => onChange(lead.id, { phone: event.target.value || null })}
+                    placeholder="Phone number"
+                    disabled={!canEditLead(lead)}
+                  />
+                </label>
+
+                <label className="grid gap-2 sm:col-span-2">
+                  <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Email</span>
+                  <input
+                    className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-white/70 outline-none transition disabled:cursor-not-allowed disabled:opacity-45 focus:border-white/20 focus:bg-black/30 focus:text-white"
+                    type="email"
+                    value={lead.email || ""}
+                    onChange={(event) => onChange(lead.id, { email: event.target.value || null })}
+                    placeholder="Email"
+                    disabled={!canEditLead(lead)}
+                  />
+                </label>
+
+                <div className="grid content-start gap-2">
+                  <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Created</p>
+                  <p className="text-sm text-white/55">
+                    {new Date(lead.created_at).toLocaleDateString()} by {creatorLabel(lead)}
+                  </p>
                 </div>
 
                 <label className="grid gap-2">
                   <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Predicted value</span>
                   <input
-                    className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-white/70 outline-none transition focus:border-white/20 focus:bg-black/30 focus:text-white"
+                    className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-white/70 outline-none transition disabled:cursor-not-allowed disabled:opacity-45 focus:border-white/20 focus:bg-black/30 focus:text-white"
                     type="number"
                     min="0"
                     step="0.01"
                     value={lead.estimated_value ?? ""}
                     onChange={(event) => handleCurrencyChange(lead.id, event)}
                     placeholder="Add value"
+                    disabled={!canEditLead(lead)}
                   />
                 </label>
 
                 <label className="grid content-start gap-2">
                   <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Status</span>
                   <select
-                    className={cn("w-fit rounded-full border-0 px-3 py-2 text-xs font-medium outline-none", statusStyles[lead.status])}
+                    className={cn(
+                      "w-fit rounded-full border-0 px-3 py-2 text-xs font-medium outline-none disabled:cursor-not-allowed disabled:opacity-55",
+                      statusStyles[lead.status],
+                    )}
                     value={lead.status}
                     onChange={(event) => onChange(lead.id, { status: event.target.value as LeadStatus })}
+                    disabled={!canEditLead(lead)}
                   >
                     {leadStatuses.map((status) => (
                       <option key={status} value={status} className="bg-zinc-950 text-white">
@@ -145,20 +201,22 @@ export function LeadTable({ leads, onChange, onArchive, canArchive }: LeadTableP
                 <label className="grid gap-2 sm:col-span-2">
                   <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Lead description</span>
                   <textarea
-                    className="min-h-36 w-full resize-y rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-3 text-sm text-white/70 outline-none transition focus:border-white/20 focus:bg-black/30 focus:text-white"
+                    className="min-h-36 w-full resize-y rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-3 text-sm text-white/70 outline-none transition disabled:cursor-not-allowed disabled:resize-none disabled:opacity-45 focus:border-white/20 focus:bg-black/30 focus:text-white"
                     value={lead.need || ""}
                     onChange={(event) => onChange(lead.id, { need: event.target.value || null })}
                     placeholder="Add description"
+                    disabled={!canEditLead(lead)}
                   />
                 </label>
 
                 <label className="grid gap-2 sm:col-span-2">
                   <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Notes</span>
                   <textarea
-                    className="min-h-36 w-full resize-y rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-3 text-sm text-white/70 outline-none transition focus:border-white/20 focus:bg-black/30 focus:text-white"
+                    className="min-h-36 w-full resize-y rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-3 text-sm text-white/70 outline-none transition disabled:cursor-not-allowed disabled:resize-none disabled:opacity-45 focus:border-white/20 focus:bg-black/30 focus:text-white"
                     value={lead.notes || ""}
                     onChange={(event) => onChange(lead.id, { notes: event.target.value || null })}
                     placeholder="Add notes"
+                    disabled={!canEditLead(lead)}
                   />
                 </label>
 
