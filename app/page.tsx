@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { LogOut } from "lucide-react";
+import { LogOut, RefreshCw } from "lucide-react";
 import { AddLeadDialog } from "@/components/add-lead-dialog";
 import { LeadTable } from "@/components/lead-table";
 import { NotificationButton } from "@/components/notification-button";
@@ -12,10 +12,24 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
 import type { Lead } from "@/lib/types";
 
+const leadSelect =
+  "id, business_name, contact_name, phone, email, need, estimated_value, status, notes, created_by_user_id, created_by_email, created_by_name, archived, created_at";
+
+async function fetchActiveLeads() {
+  const { data } = await supabase
+    .from("leads")
+    .select(leadSelect)
+    .eq("archived", false)
+    .order("created_at", { ascending: false });
+
+  return (data as Lead[]) || [];
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [currentUserId, setCurrentUserId] = useState("");
   const [currentUserEmail, setCurrentUserEmail] = useState("");
   const [userLabel, setUserLabel] = useState("");
@@ -52,15 +66,9 @@ export default function DashboardPage() {
         setIsAdmin(Boolean(approval.is_admin));
       }
 
-      const { data } = await supabase
-        .from("leads")
-        .select(
-          "id, business_name, contact_name, phone, email, need, estimated_value, status, notes, created_by_user_id, created_by_email, created_by_name, archived, created_at",
-        )
-        .eq("archived", false)
-        .order("created_at", { ascending: false });
+      const data = await fetchActiveLeads();
       if (mounted) {
-        setLeads((data as Lead[]) || []);
+        setLeads(data);
         setLoading(false);
       }
     }
@@ -97,6 +105,16 @@ export default function DashboardPage() {
     router.replace("/login");
   }
 
+  async function refreshLeads() {
+    setRefreshing(true);
+    try {
+      const data = await fetchActiveLeads();
+      setLeads(data);
+    } finally {
+      setRefreshing(false);
+    }
+  }
+
   async function archiveLead(id: string) {
     const lead = leads.find((item) => item.id === id);
     if (!lead || !window.confirm(`Archive ${lead.business_name}?`)) return;
@@ -131,6 +149,17 @@ export default function DashboardPage() {
           </div>
         </div>
         <div className="grid gap-3 sm:flex sm:flex-wrap sm:items-center">
+          <Button
+            variant="ghost"
+            size="sm"
+            type="button"
+            onClick={refreshLeads}
+            disabled={loading || refreshing}
+            aria-label="Refresh leads"
+            title="Refresh leads"
+          >
+            <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
+          </Button>
           <span className="w-fit rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-white/60">{userLabel}</span>
           <OnlineUsers currentUserId={currentUserId} userEmail={currentUserEmail} userLabel={userLabel} />
           {isAdmin ? <NotificationButton /> : null}
