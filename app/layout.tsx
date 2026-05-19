@@ -2,17 +2,17 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Setter Leads",
+  title: "CRM Tracker",
   description: "Minimal internal setter lead tracker",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Louisbish CRM",
+    title: "CRM Tracker",
   },
   icons: {
-    apple: "/icon.png",
-    icon: "/icon.png",
+    apple: "/logo.png",
+    icon: "/logo.png",
   },
 };
 

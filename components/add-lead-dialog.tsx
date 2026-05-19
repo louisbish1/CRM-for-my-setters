@@ -95,10 +95,22 @@ export function AddLeadDialog({ creatorLabel, onCreated }: AddLeadDialogProps) {
           <Input placeholder="Contact name" value={form.contact_name} onChange={(event) => setForm({ ...form, contact_name: event.target.value })} />
           <Input placeholder="Phone" value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} />
           <Input type="email" placeholder="Email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} />
-          <Input placeholder="Need" value={form.need} onChange={(event) => setForm({ ...form, need: event.target.value })} />
+          <div className="sm:col-span-2">
+            <Textarea
+              className="min-h-32 resize-y"
+              placeholder="Lead description / need"
+              value={form.need}
+              onChange={(event) => setForm({ ...form, need: event.target.value })}
+            />
+          </div>
           <Input type="number" min="0" step="0.01" placeholder="Predicted value" value={form.estimated_value} onChange={(event) => setForm({ ...form, estimated_value: event.target.value })} />
           <div className="sm:col-span-2">
-            <Textarea placeholder="Notes" value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} />
+            <Textarea
+              className="min-h-36 resize-y"
+              placeholder="Extra notes"
+              value={form.notes}
+              onChange={(event) => setForm({ ...form, notes: event.target.value })}
+            />
           </div>
           {error ? <p className="text-sm text-red-300 sm:col-span-2">{error}</p> : null}
           <div className="flex justify-end sm:col-span-2">

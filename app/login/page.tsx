@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
@@ -52,8 +53,16 @@ export default function LoginPage() {
     <main className="flex min-h-screen items-center justify-center px-4">
       <section className="w-full max-w-md rounded-[32px] border border-white/10 bg-white/[0.045] p-6 shadow-glow backdrop-blur-xl sm:p-8">
         <div className="mb-8">
+          <Image
+            src="/logo.png"
+            alt="Louis Bish logo"
+            width={72}
+            height={72}
+            className="mb-5 h-16 w-16 rounded-full border border-white/10 object-cover shadow-glow"
+            priority
+          />
           <p className="mb-3 text-xs font-medium uppercase tracking-[0.28em] text-white/40">Internal</p>
-          <h1 className="text-3xl font-semibold tracking-tight">Setter Leads</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">CRM Tracker</h1>
           <p className="mt-2 text-sm text-white/55">Sign in with your approved work account.</p>
         </div>
 

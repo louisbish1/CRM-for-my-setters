@@ -1,10 +1,10 @@
 self.addEventListener("push", (event) => {
   const data = event.data ? event.data.json() : {};
-  const title = data.title || "Louisbish CRM";
+  const title = data.title || "CRM Tracker";
   const options = {
     body: data.body,
-    icon: "/icon.png",
-    badge: "/icon.png",
+    icon: "/logo.png",
+    badge: "/logo.png",
     data: {
       url: data.url || "/",
     },

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { AddLeadDialog } from "@/components/add-lead-dialog";
@@ -101,10 +102,20 @@ export default function DashboardPage() {
   return (
     <main className="mx-auto min-h-screen w-full max-w-7xl px-3 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] sm:px-6 sm:py-6 lg:px-8">
       <header className="mb-4 flex flex-col gap-4 rounded-[28px] border border-white/10 bg-white/[0.05] p-4 shadow-glow backdrop-blur-xl sm:mb-6 sm:flex-row sm:items-center sm:justify-between sm:p-5">
-        <div>
-          <p className="text-xs font-medium uppercase tracking-[0.28em] text-white/35">Louis Bish internal board</p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">Setter Leads</h1>
-          <p className="mt-2 text-sm text-white/50">{loading ? "Loading leads..." : `${leads.length} leads · £${totalValue.toLocaleString()}`}</p>
+        <div className="flex items-center gap-4">
+          <Image
+            src="/logo.png"
+            alt="Louis Bish logo"
+            width={64}
+            height={64}
+            className="h-14 w-14 rounded-full border border-white/10 object-cover shadow-glow"
+            priority
+          />
+          <div>
+            <p className="text-xs font-medium uppercase tracking-[0.28em] text-white/35">Louis Bish internal board</p>
+            <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">CRM Tracker</h1>
+            <p className="mt-2 text-sm text-white/50">{loading ? "Loading leads..." : `${leads.length} leads · £${totalValue.toLocaleString()}`}</p>
+          </div>
         </div>
         <div className="grid gap-3 sm:flex sm:flex-wrap sm:items-center">
           <span className="w-fit rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-white/60">{userLabel}</span>
