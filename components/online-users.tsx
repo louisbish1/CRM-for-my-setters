@@ -258,7 +258,7 @@ export function OnlineUsers({
                     {user.id === currentUserId ? <span className="text-white/40"> (you)</span> : null}
                   </span>
                   <span className="mt-1 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs text-white/40">
-                    {user.role ? <span className="shrink-0 capitalize text-white/50">{user.role}</span> : null}
+                    <span className="shrink-0 capitalize text-white/50">{user.role || "setter"}</span>
                     {user.online ? "Online now" : `Last online ${formatLastSeen(user.lastSeenAt)}`}
                   </span>
                 </span>
