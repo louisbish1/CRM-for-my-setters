@@ -14,6 +14,8 @@ const statusStyles: Record<LeadStatus, string> = {
   Lost: "bg-rose-400/15 text-rose-200",
 };
 
+const monthLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
 const editableTextClass =
   "w-full border-0 bg-transparent p-0 text-sm text-white/65 outline-none placeholder:text-white/35 disabled:cursor-default disabled:opacity-100 focus:text-white";
 
@@ -66,6 +68,17 @@ export function LeadTable({ leads, currentUserId, onChange, onArchive, canArchiv
 
   function canEditLead(lead: Lead) {
     return canArchive || lead.created_by_user_id === currentUserId;
+  }
+
+  function formatCreatedAt(value: string) {
+    const date = new Date(value);
+    const day = date.getDate();
+    const month = monthLabels[date.getMonth()];
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+
+    return `${day} ${month} ${year} ${hours}:${minutes}`;
   }
 
   if (!leads.length) {
@@ -130,45 +143,45 @@ export function LeadTable({ leads, currentUserId, onChange, onArchive, canArchiv
               </div>
 
               {isExpanded ? (
-              <div className="grid gap-4 border-t border-white/10 bg-black/20 px-4 py-4 sm:grid-cols-2 sm:px-5 lg:grid-cols-4">
-                <div className="grid gap-3 sm:col-span-2 lg:col-span-1">
-                  <div>
-                    <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Contact</p>
-                    <div className="mt-2 grid gap-1 text-sm text-white/65">
-                      <input
-                        className={editableTextClass}
-                        value={lead.contact_name || ""}
-                        onChange={(event) => onChange(lead.id, { contact_name: event.target.value || null })}
-                        placeholder="No contact name"
-                        disabled={!isEditable}
-                        aria-label="Contact name"
-                      />
-                      <input
-                        className={editableTextClass}
-                        value={lead.phone || ""}
-                        onChange={(event) => onChange(lead.id, { phone: event.target.value || null })}
-                        placeholder="No phone"
-                        disabled={!isEditable}
-                        aria-label="Phone"
-                      />
-                      <input
-                        className={cn(editableTextClass, "break-all")}
-                        type="email"
-                        value={lead.email || ""}
-                        onChange={(event) => onChange(lead.id, { email: event.target.value || null })}
-                        placeholder="No email"
-                        disabled={!isEditable}
-                        aria-label="Email"
-                      />
+                <div className="grid gap-4 border-t border-white/10 bg-black/20 px-4 py-4 sm:grid-cols-2 sm:px-5 lg:grid-cols-[minmax(220px,1.35fr)_minmax(160px,0.85fr)_minmax(150px,0.75fr)_minmax(150px,0.75fr)] lg:items-start lg:gap-x-6 lg:gap-y-5">
+                  <div className="grid gap-3 sm:col-span-2 lg:col-span-1">
+                    <div>
+                      <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Contact</p>
+                      <div className="mt-2 grid gap-1 text-sm text-white/65">
+                        <input
+                          className={editableTextClass}
+                          value={lead.contact_name || ""}
+                          onChange={(event) => onChange(lead.id, { contact_name: event.target.value || null })}
+                          placeholder="No contact name"
+                          disabled={!isEditable}
+                          aria-label="Contact name"
+                        />
+                        <input
+                          className={editableTextClass}
+                          value={lead.phone || ""}
+                          onChange={(event) => onChange(lead.id, { phone: event.target.value || null })}
+                          placeholder="No phone"
+                          disabled={!isEditable}
+                          aria-label="Phone"
+                        />
+                        <input
+                          className={cn(editableTextClass, "break-all")}
+                          type="email"
+                          value={lead.email || ""}
+                          onChange={(event) => onChange(lead.id, { email: event.target.value || null })}
+                          placeholder="No email"
+                          disabled={!isEditable}
+                          aria-label="Email"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Created</p>
+                      <p className="mt-2 text-sm text-white/55">
+                        {formatCreatedAt(lead.created_at)} by {creatorLabel(lead)}
+                      </p>
                     </div>
                   </div>
-                  <div>
-                    <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Created</p>
-                    <p className="mt-2 text-sm text-white/55">
-                      {new Date(lead.created_at).toLocaleDateString()} by {creatorLabel(lead)}
-                    </p>
-                  </div>
-                </div>
 
                 <label className="grid gap-2">
                   <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Predicted value</span>
@@ -203,7 +216,7 @@ export function LeadTable({ leads, currentUserId, onChange, onArchive, canArchiv
                   </select>
                 </label>
 
-                <label className="grid gap-2 sm:col-span-2">
+                <label className="grid gap-2 sm:col-span-2 lg:col-span-2">
                   <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Lead description</span>
                   <textarea
                     className="min-h-36 w-full resize-y rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-3 text-sm text-white/70 outline-none transition disabled:cursor-not-allowed disabled:resize-none disabled:opacity-45 focus:border-white/20 focus:bg-black/30 focus:text-white"
@@ -214,7 +227,7 @@ export function LeadTable({ leads, currentUserId, onChange, onArchive, canArchiv
                   />
                 </label>
 
-                <label className="grid gap-2 sm:col-span-2">
+                <label className="grid gap-2 sm:col-span-2 lg:col-span-2">
                   <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Notes</span>
                   <textarea
                     className="min-h-36 w-full resize-y rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-3 text-sm text-white/70 outline-none transition disabled:cursor-not-allowed disabled:resize-none disabled:opacity-45 focus:border-white/20 focus:bg-black/30 focus:text-white"
@@ -237,7 +250,7 @@ export function LeadTable({ leads, currentUserId, onChange, onArchive, canArchiv
                     </button>
                   </div>
                 ) : null}
-              </div>
+                </div>
               ) : null}
             </article>
           );
