@@ -32,8 +32,8 @@ function searchLinks(target: string, location: string) {
     },
     {
       label: "Facebook",
-      detail: "Find local business pages",
-      href: `https://www.facebook.com/search/pages/?q=${mapsQuery}`,
+      detail: "Find local business places",
+      href: `https://www.facebook.com/search/places/?q=${mapsQuery}`,
       icon: ExternalLink,
     },
     {
