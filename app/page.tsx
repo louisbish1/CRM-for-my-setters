@@ -2,8 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LogOut, RefreshCw } from "lucide-react";
+import { LogOut, RefreshCw, Search } from "lucide-react";
 import { AddLeadDialog } from "@/components/add-lead-dialog";
 import { LeadTable } from "@/components/lead-table";
 import { NotificationButton } from "@/components/notification-button";
@@ -159,6 +160,12 @@ export default function DashboardPage() {
             title="Refresh leads"
           >
             <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
+          </Button>
+          <Button variant="ghost" size="sm" type="button" asChild>
+            <Link href="/client-finder">
+              <Search className="h-4 w-4" />
+              Client Find
+            </Link>
           </Button>
           <span className="w-fit rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-white/60">{userLabel}</span>
           <OnlineUsers

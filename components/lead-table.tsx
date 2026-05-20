@@ -17,7 +17,7 @@ const statusStyles: Record<LeadStatus, string> = {
 const monthLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 const editableTextClass =
-  "w-full border-0 bg-transparent p-0 text-sm text-white/65 outline-none placeholder:text-white/35 disabled:cursor-default disabled:opacity-100 focus:text-white";
+  "w-full border-0 bg-transparent p-0 text-base text-white/65 outline-none placeholder:text-white/35 disabled:cursor-default disabled:opacity-100 focus:text-white sm:text-sm";
 
 type LeadTableProps = {
   leads: Lead[];
@@ -186,7 +186,7 @@ export function LeadTable({ leads, currentUserId, onChange, onArchive, canArchiv
                 <label className="grid gap-2">
                   <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Predicted value</span>
                   <input
-                    className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-white/70 outline-none transition disabled:cursor-not-allowed disabled:opacity-45 focus:border-white/20 focus:bg-black/30 focus:text-white"
+                    className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-base text-white/70 outline-none transition disabled:cursor-not-allowed disabled:opacity-45 focus:border-white/20 focus:bg-black/30 focus:text-white sm:text-sm"
                     type="number"
                     min="0"
                     step="0.01"
@@ -201,7 +201,7 @@ export function LeadTable({ leads, currentUserId, onChange, onArchive, canArchiv
                   <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Status</span>
                   <select
                     className={cn(
-                      "w-fit rounded-full border-0 px-3 py-2 text-xs font-medium outline-none disabled:cursor-not-allowed disabled:opacity-55",
+                      "w-fit rounded-full border-0 px-3 py-2 text-base font-medium outline-none disabled:cursor-not-allowed disabled:opacity-55 sm:text-xs",
                       statusStyles[lead.status],
                     )}
                     value={lead.status}
@@ -219,7 +219,7 @@ export function LeadTable({ leads, currentUserId, onChange, onArchive, canArchiv
                 <label className="grid gap-2 sm:col-span-2 lg:col-span-2">
                   <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Lead description</span>
                   <textarea
-                    className="min-h-36 w-full resize-y rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-3 text-sm text-white/70 outline-none transition disabled:cursor-not-allowed disabled:resize-none disabled:opacity-45 focus:border-white/20 focus:bg-black/30 focus:text-white"
+                    className="min-h-36 w-full resize-y rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-3 text-base text-white/70 outline-none transition disabled:cursor-not-allowed disabled:resize-none disabled:opacity-45 focus:border-white/20 focus:bg-black/30 focus:text-white sm:text-sm"
                     value={lead.need || ""}
                     onChange={(event) => onChange(lead.id, { need: event.target.value || null })}
                     placeholder="Add description"
@@ -230,7 +230,7 @@ export function LeadTable({ leads, currentUserId, onChange, onArchive, canArchiv
                 <label className="grid gap-2 sm:col-span-2 lg:col-span-2">
                   <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Notes</span>
                   <textarea
-                    className="min-h-36 w-full resize-y rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-3 text-sm text-white/70 outline-none transition disabled:cursor-not-allowed disabled:resize-none disabled:opacity-45 focus:border-white/20 focus:bg-black/30 focus:text-white"
+                    className="min-h-36 w-full resize-y rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-3 text-base text-white/70 outline-none transition disabled:cursor-not-allowed disabled:resize-none disabled:opacity-45 focus:border-white/20 focus:bg-black/30 focus:text-white sm:text-sm"
                     value={lead.notes || ""}
                     onChange={(event) => onChange(lead.id, { notes: event.target.value || null })}
                     placeholder="Add notes"
