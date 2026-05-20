@@ -152,9 +152,6 @@ export default function ClientFinderPage() {
           <div className="mb-4">
             <p className="text-xs font-medium uppercase tracking-[0.24em] text-white/35">Opportunity</p>
             <h2 className="mt-2 text-lg font-semibold text-white">{queryParts(target, location) || "Manual client search"}</h2>
-            <p className="mt-2 text-sm text-white/50">
-              Nothing is saved here. Use these links to research small and medium businesses yourself, then add the good ones to the CRM.
-            </p>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

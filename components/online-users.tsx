@@ -293,7 +293,7 @@ export function OnlineUsers({
       </Button>
 
       {open ? (
-        <div className="absolute right-0 z-50 mt-2 w-[min(30rem,calc(100vw-2rem))] rounded-2xl border border-white/10 bg-zinc-950/95 p-2 shadow-glow backdrop-blur-xl">
+        <div className="fixed left-3 right-3 z-50 mt-2 rounded-2xl border border-white/10 bg-zinc-950/95 p-2 shadow-glow backdrop-blur-xl sm:absolute sm:left-auto sm:right-0 sm:w-[min(30rem,calc(100vw-2rem))]">
           <div className="px-3 py-2 text-xs font-medium uppercase tracking-[0.22em] text-white/35">Team status</div>
           <div className="grid gap-1">
             {visibleUsers.map((user) => {
@@ -306,7 +306,7 @@ export function OnlineUsers({
               return (
                 <div
                   key={user.id}
-                  className={`grid rounded-xl ${isActive ? "grid-cols-[minmax(0,1fr)_8.75rem] gap-2" : "grid-cols-1"}`}
+                  className={`grid rounded-xl ${isActive ? "gap-2 sm:grid-cols-[minmax(0,1fr)_8.75rem]" : "grid-cols-1"}`}
                 >
                   <button
                     type="button"
