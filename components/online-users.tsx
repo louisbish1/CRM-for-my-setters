@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Circle, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
+import type { Lead } from "@/lib/types";
 
 const adminEmails = new Set(["louisbish0612@gmail.com"]);
 
@@ -40,6 +41,11 @@ type VisibleUser = {
   online: boolean;
 };
 
+type UserPerformance = {
+  leadsAdded: number;
+  closeRate: number | null;
+};
+
 function formatLastSeen(value: string) {
   const timestamp = new Date(value).getTime();
   const seconds = Math.max(0, Math.floor((Date.now() - timestamp) / 1000));
@@ -68,13 +74,16 @@ export function OnlineUsers({
   userEmail,
   userLabel,
   userRole,
+  leads = [],
 }: {
   currentUserId: string;
   userEmail: string;
   userLabel: string;
   userRole: string;
+  leads?: Lead[];
 }) {
   const [open, setOpen] = useState(false);
+  const [activeUserId, setActiveUserId] = useState<string | null>(null);
   const [presenceState, setPresenceState] = useState<PresenceState>({});
   const [knownUsers, setKnownUsers] = useState<UserStatus[]>([]);
 
@@ -196,6 +205,32 @@ export function OnlineUsers({
   }, [currentUserId, presenceState]);
 
   const onlineCount = onlineUsers.length;
+  const performanceByUser = useMemo(() => {
+    const counts = leads.reduce<Map<string, { leadsAdded: number; wins: number }>>((users, lead) => {
+      const current = users.get(lead.created_by_user_id) || {
+        leadsAdded: 0,
+        wins: 0,
+      };
+      const isWon = lead.status === "Won";
+
+      users.set(lead.created_by_user_id, {
+        leadsAdded: current.leadsAdded + 1,
+        wins: current.wins + (isWon ? 1 : 0),
+      });
+
+      return users;
+    }, new Map());
+
+    return Array.from(counts).reduce<Map<string, UserPerformance>>((users, [userId, performance]) => {
+      users.set(userId, {
+        leadsAdded: performance.leadsAdded,
+        closeRate: performance.leadsAdded > 0 ? Math.round((performance.wins / performance.leadsAdded) * 100) : null,
+      });
+
+      return users;
+    }, new Map());
+  }, [leads]);
+
   const visibleUsers = useMemo(() => {
     const users = new Map<string, VisibleUser>();
 
@@ -238,47 +273,87 @@ export function OnlineUsers({
       if (a.online !== b.online) return a.online ? -1 : 1;
       return new Date(b.lastSeenAt).getTime() - new Date(a.lastSeenAt).getTime();
     });
-  }, [currentUserId, knownUsers, onlineUsers, userLabel, userRole]);
+  }, [currentUserId, knownUsers, onlineUsers, userEmail, userLabel, userRole]);
 
   if (!currentUserId) return null;
 
   return (
     <div className="relative">
-      <Button variant="ghost" type="button" onClick={() => setOpen((current) => !current)} aria-expanded={open}>
+      <Button
+        variant="ghost"
+        type="button"
+        onClick={() => {
+          setOpen((current) => !current);
+          if (open) setActiveUserId(null);
+        }}
+        aria-expanded={open}
+      >
         <Users className="h-4 w-4" />
         {onlineCount || 1} online
       </Button>
 
       {open ? (
-        <div className="absolute right-0 z-50 mt-2 w-[min(20rem,calc(100vw-2rem))] rounded-2xl border border-white/10 bg-zinc-950/95 p-2 shadow-glow backdrop-blur-xl">
+        <div className="absolute right-0 z-50 mt-2 w-[min(30rem,calc(100vw-2rem))] rounded-2xl border border-white/10 bg-zinc-950/95 p-2 shadow-glow backdrop-blur-xl">
           <div className="px-3 py-2 text-xs font-medium uppercase tracking-[0.22em] text-white/35">Team status</div>
           <div className="grid gap-1">
-            {visibleUsers.map((user) => (
-              <div
-                key={user.id}
-                className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-xl px-3 py-2 text-sm text-white/75"
-              >
-                <span className="min-w-0">
-                  <span className="flex min-w-0 items-center gap-2">
-                    <span className="truncate text-white/90">{user.name}</span>
-                    {user.id === currentUserId ? <span className="text-white/40"> (you)</span> : null}
-                  </span>
-                  <span className="mt-1 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs text-white/40">
-                    <span className="shrink-0 capitalize text-white/50">
-                      {user.role || (user.email && adminEmails.has(user.email.toLowerCase()) ? "admin" : "setter")}
+            {visibleUsers.map((user) => {
+              const performance = performanceByUser.get(user.id) || {
+                leadsAdded: 0,
+                closeRate: null,
+              };
+              const isActive = activeUserId === user.id;
+
+              return (
+                <div
+                  key={user.id}
+                  className={`grid rounded-xl ${isActive ? "grid-cols-[minmax(0,1fr)_8.75rem] gap-2" : "grid-cols-1"}`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setActiveUserId((current) => (current === user.id ? null : user.id))}
+                    aria-expanded={isActive}
+                    className="grid w-full min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-xl px-3 py-2 text-left text-sm text-white/75 transition hover:bg-white/[0.04]"
+                  >
+                    <span className="min-w-0">
+                      <span className="flex min-w-0 items-center gap-2">
+                        <span className="truncate text-white/90">{user.name}</span>
+                        {user.id === currentUserId ? <span className="text-white/40"> (you)</span> : null}
+                      </span>
+                      <span className="mt-1 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs text-white/40">
+                        <span className="shrink-0 capitalize text-white/50">
+                          {user.role || (user.email && adminEmails.has(user.email.toLowerCase()) ? "admin" : "setter")}
+                        </span>
+                        {user.online ? "Online now" : `Last online ${formatLastSeen(user.lastSeenAt)}`}
+                      </span>
                     </span>
-                    {user.online ? "Online now" : `Last online ${formatLastSeen(user.lastSeenAt)}`}
-                  </span>
-                </span>
-                <Circle
-                  className={
-                    user.online
-                      ? "h-2.5 w-2.5 shrink-0 fill-emerald-300 text-emerald-300"
-                      : "h-2.5 w-2.5 shrink-0 fill-white/25 text-white/25"
-                  }
-                />
-              </div>
-            ))}
+                    <Circle
+                      className={
+                        user.online
+                          ? "h-2.5 w-2.5 shrink-0 fill-emerald-300 text-emerald-300"
+                          : "h-2.5 w-2.5 shrink-0 fill-white/25 text-white/25"
+                      }
+                    />
+                  </button>
+
+                  {isActive ? (
+                    <div className="self-center rounded-xl border border-white/[0.06] bg-white/[0.035] px-3 py-2 text-xs text-white/45 shadow-glow">
+                      <div className="grid gap-2">
+                        <span>
+                          <span className="block text-[10px] uppercase tracking-[0.16em] text-white/25">Added</span>
+                          <span className="mt-0.5 block text-sm font-medium text-white/70">{performance.leadsAdded}</span>
+                        </span>
+                        <span>
+                          <span className="block text-[10px] uppercase tracking-[0.16em] text-white/25">Close rate</span>
+                          <span className="mt-0.5 block text-sm font-medium text-white/70">
+                            {performance.closeRate === null ? "-" : `${performance.closeRate}%`}
+                          </span>
+                        </span>
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })}
           </div>
         </div>
       ) : null}

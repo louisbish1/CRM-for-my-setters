@@ -102,12 +102,23 @@ export function NotificationButton() {
   }
 
   return (
-    <div className="grid gap-1">
-      <Button variant="ghost" onClick={enableNotifications} disabled={loading || enabled}>
+    <div className="relative">
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-9 w-9 px-0"
+        onClick={enableNotifications}
+        disabled={loading || enabled}
+        aria-label={enabled ? "Notifications enabled" : "Enable notifications"}
+        title={enabled ? "Notifications enabled" : loading ? "Enabling notifications" : "Enable notifications"}
+      >
         <Bell className="h-4 w-4" />
-        {enabled ? "Notifications on" : loading ? "Enabling..." : "Enable notifications"}
       </Button>
-      {error ? <p className="text-xs text-amber-200/80">{error}</p> : null}
+      {error ? (
+        <p className="absolute right-0 top-[calc(100%+0.5rem)] z-50 w-56 rounded-xl border border-amber-200/10 bg-zinc-950/95 px-3 py-2 text-xs text-amber-100/80 shadow-glow backdrop-blur-xl">
+          {error}
+        </p>
+      ) : null}
     </div>
   );
 }

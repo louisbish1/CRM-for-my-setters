@@ -149,37 +149,53 @@ export default function DashboardPage() {
             <p className="mt-2 text-sm text-white/50">{loading ? "Loading leads..." : `${leads.length} leads · £${totalValue.toLocaleString()}`}</p>
           </div>
         </div>
-        <div className="grid gap-3 sm:flex sm:flex-wrap sm:items-center">
-          <Button
-            variant="ghost"
-            size="sm"
-            type="button"
-            onClick={refreshLeads}
-            disabled={loading || refreshing}
-            aria-label="Refresh leads"
-            title="Refresh leads"
-          >
-            <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
-          </Button>
-          <Button variant="ghost" size="sm" type="button" asChild>
-            <Link href="/client-finder">
-              <Search className="h-4 w-4" />
-              Client Find
-            </Link>
-          </Button>
-          <span className="w-fit rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-white/60">{userLabel}</span>
+        <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+          <AddLeadDialog creatorLabel={userLabel} onCreated={(lead) => setLeads((current) => [lead, ...current])} />
           <OnlineUsers
             currentUserId={currentUserId}
             userEmail={currentUserEmail}
             userLabel={userLabel}
             userRole={isAdmin ? "admin" : "setter"}
+            leads={leads}
           />
-          {isAdmin ? <NotificationButton /> : null}
-          <AddLeadDialog creatorLabel={userLabel} onCreated={(lead) => setLeads((current) => [lead, ...current])} />
-          <Button variant="ghost" onClick={signOut}>
-            <LogOut className="h-4 w-4" />
-            Sign out
-          </Button>
+          <div className="flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.03] p-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-9 w-9 px-0"
+              type="button"
+              onClick={refreshLeads}
+              disabled={loading || refreshing}
+              aria-label="Refresh leads"
+              title="Refresh leads"
+            >
+              <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-9 w-9 px-0"
+              type="button"
+              aria-label="Client finder"
+              title="Client finder"
+              asChild
+            >
+              <Link href="/client-finder">
+                <Search className="h-4 w-4" />
+              </Link>
+            </Button>
+            {isAdmin ? <NotificationButton /> : null}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-9 w-9 px-0"
+              onClick={signOut}
+              aria-label="Sign out"
+              title="Sign out"
+            >
+              <LogOut className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </header>
 
