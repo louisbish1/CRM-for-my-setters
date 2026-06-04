@@ -2,7 +2,7 @@
 
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import { Archive, ChevronDown, Circle, Flame, Snowflake } from "lucide-react";
-import { leadStatuses, type Lead, type LeadStatus, type LeadTemperature } from "@/lib/types";
+import { leadStatuses, leadTemperatures, type Lead, type LeadStatus, type LeadTemperature } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const statusStyles: Record<LeadStatus, string> = {
@@ -14,16 +14,10 @@ const statusStyles: Record<LeadStatus, string> = {
   Lost: "bg-rose-400/15 text-rose-200",
 };
 
-const temperatureStyles: Record<LeadTemperature, { active: string; icon: typeof Circle }> = {
-  Neutral: { active: "text-white/40 hover:bg-white/10 hover:text-white/65", icon: Circle },
-  Cold: { active: "bg-cyan-400/15 text-cyan-200", icon: Snowflake },
-  Warm: { active: "bg-amber-400/15 text-amber-200", icon: Flame },
-};
-
-const nextTemperature: Record<LeadTemperature, LeadTemperature> = {
-  Neutral: "Cold",
-  Cold: "Warm",
-  Warm: "Neutral",
+const temperatureIcons: Record<LeadTemperature, typeof Circle> = {
+  Neutral: Circle,
+  Cold: Snowflake,
+  Warm: Flame,
 };
 
 const monthLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -106,30 +100,17 @@ export function LeadTable({
     return `${day} ${month} ${year} ${hours}:${minutes}`;
   }
 
-  function temperatureControl(lead: Lead, isEditable: boolean) {
-    const Icon = temperatureStyles[lead.temperature].icon;
+  function temperatureIcon(lead: Lead) {
+    const Icon = temperatureIcons[lead.temperature];
 
     return (
-      <button
-        className={cn(
-          "flex h-7 w-7 shrink-0 items-center justify-center rounded-full transition disabled:cursor-default disabled:opacity-60",
-          temperatureStyles[lead.temperature].active,
-        )}
-        type="button"
-        onClick={(event) => {
-          event.stopPropagation();
-          if (isEditable) onChange(lead.id, { temperature: nextTemperature[lead.temperature] });
-        }}
-        onKeyDown={(event) => event.stopPropagation()}
-        onPointerDown={(event) => event.stopPropagation()}
-        onMouseDown={(event) => event.stopPropagation()}
-        onDoubleClick={(event) => event.stopPropagation()}
-        disabled={!isEditable}
-        aria-label={`${lead.temperature} lead. Click to change temperature.`}
+      <span
+        className="flex h-7 w-7 shrink-0 items-center justify-center text-white/35"
+        aria-label={`${lead.temperature} lead`}
         title={lead.temperature}
       >
         <Icon className="h-3.5 w-3.5" />
-      </button>
+      </span>
     );
   }
 
@@ -181,7 +162,7 @@ export function LeadTable({
                     <span className={cn("rounded-full px-2.5 py-1 text-[11px] font-medium", statusStyles[lead.status])}>
                       {lead.status}
                     </span>
-                    {temperatureControl(lead, isEditable)}
+                    {temperatureIcon(lead)}
                   </span>
                   <span className="mt-1 block truncate text-sm text-white/45">{compactDetail(lead)}</span>
                 </span>
@@ -265,6 +246,22 @@ export function LeadTable({
                     {leadStatuses.map((status) => (
                       <option key={status} value={status} className="bg-zinc-950 text-white">
                         {status}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="grid content-start gap-2">
+                  <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">Temperature</span>
+                  <select
+                    className="w-fit rounded-full border border-white/10 bg-white/[0.03] px-3 py-2 text-base text-white/70 outline-none transition disabled:cursor-not-allowed disabled:opacity-45 focus:border-white/20 focus:bg-black/30 focus:text-white sm:text-xs"
+                    value={lead.temperature}
+                    onChange={(event) => onChange(lead.id, { temperature: event.target.value as LeadTemperature })}
+                    disabled={!isEditable}
+                  >
+                    {leadTemperatures.map((temperature) => (
+                      <option key={temperature} value={temperature} className="bg-zinc-950 text-white">
+                        {temperature}
                       </option>
                     ))}
                   </select>

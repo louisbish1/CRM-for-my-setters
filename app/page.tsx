@@ -11,21 +11,42 @@ import { NotificationButton } from "@/components/notification-button";
 import { OnlineUsers } from "@/components/online-users";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
-import type { Lead } from "@/lib/types";
+import type { Lead, LeadTemperature } from "@/lib/types";
 
 const leadSelect =
   "id, business_name, contact_name, phone, email, need, estimated_value, status, temperature, notes, created_by_user_id, created_by_email, created_by_name, archived, created_at";
 const legacyLeadSelect =
   "id, business_name, contact_name, phone, email, need, estimated_value, status, notes, created_by_user_id, created_by_email, created_by_name, archived, created_at";
+const temperatureStorageKey = "crm-lead-temperatures";
 
-function normalizeLead(lead: Lead | Omit<Lead, "temperature">) {
+type TemperatureOverrides = Record<string, LeadTemperature>;
+
+function readTemperatureOverrides() {
+  if (typeof window === "undefined") return {};
+
+  try {
+    return JSON.parse(window.localStorage.getItem(temperatureStorageKey) || "{}") as TemperatureOverrides;
+  } catch {
+    return {};
+  }
+}
+
+function writeTemperatureOverride(id: string, temperature: LeadTemperature) {
+  if (typeof window === "undefined") return;
+
+  const overrides = readTemperatureOverrides();
+  overrides[id] = temperature;
+  window.localStorage.setItem(temperatureStorageKey, JSON.stringify(overrides));
+}
+
+function normalizeLead(lead: Lead | Omit<Lead, "temperature">, overrides: TemperatureOverrides = readTemperatureOverrides()) {
   const legacyStatus = lead.status as string;
   const temperature = "temperature" in lead ? lead.temperature : null;
 
   return {
     ...lead,
     status: legacyStatus === "Cold" ? "New" : lead.status,
-    temperature: temperature || (legacyStatus === "Cold" ? "Cold" : "Neutral"),
+    temperature: overrides[lead.id] || temperature || (legacyStatus === "Cold" ? "Cold" : "Neutral"),
   } satisfies Lead;
 }
 
@@ -37,13 +58,14 @@ function leadMatchesSearch(lead: Lead, query: string) {
 }
 
 async function fetchActiveLeads() {
+  const temperatureOverrides = readTemperatureOverrides();
   const { data, error } = await supabase
     .from("leads")
     .select(leadSelect)
     .eq("archived", false)
     .order("created_at", { ascending: false });
 
-  if (!error) return ((data as Lead[]) || []).map(normalizeLead);
+  if (!error) return ((data as Lead[]) || []).map((lead) => normalizeLead(lead, temperatureOverrides));
 
   const { data: legacyData } = await supabase
     .from("leads")
@@ -51,7 +73,7 @@ async function fetchActiveLeads() {
     .eq("archived", false)
     .order("created_at", { ascending: false });
 
-  return ((legacyData as Omit<Lead, "temperature">[]) || []).map(normalizeLead);
+  return ((legacyData as Omit<Lead, "temperature">[]) || []).map((lead) => normalizeLead(lead, temperatureOverrides));
 }
 
 export default function DashboardPage() {
@@ -126,6 +148,10 @@ export default function DashboardPage() {
   ) {
     const lead = leads.find((item) => item.id === id);
     if (!lead || (!isAdmin && lead.created_by_user_id !== currentUserId)) return;
+
+    if (patch.temperature) {
+      writeTemperatureOverride(id, patch.temperature);
+    }
 
     setLeads((current) => current.map((lead) => (lead.id === id ? { ...lead, ...patch } : lead)));
     if (!id.startsWith("demo-")) {
