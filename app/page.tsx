@@ -4,14 +4,14 @@ import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LogOut, RefreshCw, Search, X } from "lucide-react";
+import { ArrowUpDown, ListFilter, LogOut, RefreshCw, Search, X } from "lucide-react";
 import { AddLeadDialog } from "@/components/add-lead-dialog";
 import { LeadTable } from "@/components/lead-table";
 import { NotificationButton } from "@/components/notification-button";
 import { OnlineUsers } from "@/components/online-users";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
-import type { Lead, LeadTemperature } from "@/lib/types";
+import { leadStatuses, leadTemperatures, type Lead, type LeadStatus, type LeadTemperature } from "@/lib/types";
 
 const leadSelect =
   "id, business_name, contact_name, phone, email, need, estimated_value, status, temperature, notes, created_by_user_id, created_by_email, created_by_name, archived, created_at";
@@ -20,6 +20,8 @@ const legacyLeadSelect =
 const temperatureStorageKey = "crm-lead-temperatures";
 
 type TemperatureOverrides = Record<string, LeadTemperature>;
+type LeadFilter = "All" | LeadStatus | LeadTemperature;
+type LeadSort = "Newest" | "Oldest" | "Highest value" | "Lowest value" | "Name A-Z";
 
 function readTemperatureOverrides() {
   if (typeof window === "undefined") return {};
@@ -79,6 +81,8 @@ export default function DashboardPage() {
   const [userLabel, setUserLabel] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [leadFilter, setLeadFilter] = useState<LeadFilter>("All");
+  const [leadSort, setLeadSort] = useState<LeadSort>("Newest");
 
   useEffect(() => {
     let mounted = true;
@@ -197,13 +201,28 @@ export default function DashboardPage() {
     [leads],
   );
 
-  const filteredLeads = useMemo(() => {
+  const visibleLeads = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
-    if (!query) return leads;
+    const filtered = leads.filter((lead) => {
+      const matchesSearch = query ? lead.business_name.toLowerCase().includes(query) : true;
+      const matchesFilter = leadFilter === "All" || lead.status === leadFilter || lead.temperature === leadFilter;
 
-    return leads.filter((lead) => lead.business_name.toLowerCase().includes(query));
-  }, [leads, searchQuery]);
+      return matchesSearch && matchesFilter;
+    });
+
+    return [...filtered].sort((a, b) => {
+      if (leadSort === "Oldest") return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      if (leadSort === "Highest value") return (b.estimated_value || 0) - (a.estimated_value || 0);
+      if (leadSort === "Lowest value") return (a.estimated_value || 0) - (b.estimated_value || 0);
+      if (leadSort === "Name A-Z") return a.business_name.localeCompare(b.business_name);
+
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
+  }, [leads, leadFilter, leadSort, searchQuery]);
   const isSearching = searchQuery.trim().length > 0;
+  const isFiltered = leadFilter !== "All";
+  const isSorted = leadSort !== "Newest";
+  const hasActiveView = isSearching || isFiltered || isSorted;
 
   return (
     <main className="mx-auto min-h-screen w-full max-w-7xl px-3 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] sm:px-6 sm:py-6 lg:px-8">
@@ -279,7 +298,7 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <section className="mb-4 flex flex-col gap-3 rounded-[24px] border border-white/10 bg-white/[0.05] p-3 shadow-glow backdrop-blur-xl sm:mb-6 sm:flex-row sm:items-center sm:justify-between">
+      <section className="mb-4 flex flex-col gap-3 rounded-[24px] border border-white/10 bg-white/[0.05] p-3 shadow-glow backdrop-blur-xl sm:mb-6 lg:flex-row lg:items-center lg:justify-between">
         <div className="relative min-w-0 flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/35" />
           <input
@@ -301,19 +320,59 @@ export default function DashboardPage() {
             </button>
           ) : null}
         </div>
-        {isSearching ? (
-          <p className="px-2 text-xs font-medium text-white/45 sm:shrink-0">{filteredLeads.length} found</p>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <label className="relative min-w-0 sm:w-40">
+            <ListFilter className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/35" />
+            <select
+              className="h-10 w-full appearance-none rounded-full border border-white/10 bg-black/20 pl-9 pr-8 text-sm text-white/65 outline-none transition focus:border-white/25 focus:bg-black/30"
+              value={leadFilter}
+              onChange={(event) => setLeadFilter(event.target.value as LeadFilter)}
+              aria-label="Filter leads"
+            >
+              <option value="All" className="bg-zinc-950 text-white">
+                All leads
+              </option>
+              {leadTemperatures.map((temperature) => (
+                <option key={temperature} value={temperature} className="bg-zinc-950 text-white">
+                  {temperature}
+                </option>
+              ))}
+              {leadStatuses.map((status) => (
+                <option key={status} value={status} className="bg-zinc-950 text-white">
+                  {status}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="relative min-w-0 sm:w-40">
+            <ArrowUpDown className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/35" />
+            <select
+              className="h-10 w-full appearance-none rounded-full border border-white/10 bg-black/20 pl-9 pr-8 text-sm text-white/65 outline-none transition focus:border-white/25 focus:bg-black/30"
+              value={leadSort}
+              onChange={(event) => setLeadSort(event.target.value as LeadSort)}
+              aria-label="Sort leads"
+            >
+              {(["Newest", "Oldest", "Highest value", "Lowest value", "Name A-Z"] as LeadSort[]).map((sort) => (
+                <option key={sort} value={sort} className="bg-zinc-950 text-white">
+                  {sort}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        {hasActiveView ? (
+          <p className="px-2 text-xs font-medium text-white/45 lg:shrink-0">{visibleLeads.length} found</p>
         ) : null}
       </section>
 
       <LeadTable
-        leads={filteredLeads}
+        leads={visibleLeads}
         currentUserId={currentUserId}
         onChange={updateLead}
         onArchive={archiveLead}
         canArchive={isAdmin}
-        emptyStateTitle={isSearching ? "No matching leads" : undefined}
-        emptyStateDescription={isSearching ? "Try a different lead name." : undefined}
+        emptyStateTitle={hasActiveView ? "No matching leads" : undefined}
+        emptyStateDescription={hasActiveView ? "Try a different filter or search." : undefined}
       />
     </main>
   );
