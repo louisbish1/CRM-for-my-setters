@@ -50,13 +50,6 @@ function normalizeLead(lead: Lead | Omit<Lead, "temperature">, overrides: Temper
   } satisfies Lead;
 }
 
-function leadMatchesSearch(lead: Lead, query: string) {
-  const temperatureAliases = lead.temperature === "Warm" ? "hot warm" : lead.temperature.toLowerCase();
-  const searchableText = [lead.business_name, lead.status, lead.temperature, temperatureAliases].join(" ").toLowerCase();
-
-  return searchableText.includes(query);
-}
-
 async function fetchActiveLeads() {
   const temperatureOverrides = readTemperatureOverrides();
   const { data, error } = await supabase
@@ -208,7 +201,7 @@ export default function DashboardPage() {
     const query = searchQuery.trim().toLowerCase();
     if (!query) return leads;
 
-    return leads.filter((lead) => leadMatchesSearch(lead, query));
+    return leads.filter((lead) => lead.business_name.toLowerCase().includes(query));
   }, [leads, searchQuery]);
   const isSearching = searchQuery.trim().length > 0;
 
