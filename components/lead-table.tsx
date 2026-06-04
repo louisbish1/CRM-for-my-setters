@@ -1,18 +1,23 @@
 "use client";
 
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
-import { Archive, ChevronDown } from "lucide-react";
-import { leadStatuses, type Lead, type LeadStatus } from "@/lib/types";
+import { Archive, ChevronDown, Circle, Flame, Snowflake } from "lucide-react";
+import { leadStatuses, leadTemperatures, type Lead, type LeadStatus, type LeadTemperature } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const statusStyles: Record<LeadStatus, string> = {
   New: "bg-white/10 text-white",
-  Cold: "bg-zinc-400/15 text-zinc-200",
   Contacted: "bg-sky-400/15 text-sky-200",
   Interested: "bg-violet-400/15 text-violet-200",
   "Call Booked": "bg-amber-400/15 text-amber-200",
   Won: "bg-emerald-400/15 text-emerald-200",
   Lost: "bg-rose-400/15 text-rose-200",
+};
+
+const temperatureStyles: Record<LeadTemperature, { active: string; icon: typeof Circle }> = {
+  Neutral: { active: "bg-white/10 text-white/70", icon: Circle },
+  Cold: { active: "bg-cyan-400/15 text-cyan-200", icon: Snowflake },
+  Warm: { active: "bg-amber-400/15 text-amber-200", icon: Flame },
 };
 
 const monthLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -26,7 +31,10 @@ type LeadTableProps = {
   onChange: (
     id: string,
     patch: Partial<
-      Pick<Lead, "business_name" | "contact_name" | "phone" | "email" | "status" | "notes" | "estimated_value" | "need">
+      Pick<
+        Lead,
+        "business_name" | "contact_name" | "phone" | "email" | "status" | "temperature" | "notes" | "estimated_value" | "need"
+      >
     >,
   ) => void;
   onArchive: (id: string) => void;
@@ -92,6 +100,40 @@ export function LeadTable({
     return `${day} ${month} ${year} ${hours}:${minutes}`;
   }
 
+  function temperatureControl(lead: Lead, isEditable: boolean) {
+    return (
+      <span
+        className="inline-flex shrink-0 items-center rounded-full border border-white/10 bg-white/[0.03] p-0.5"
+        onClick={(event) => event.stopPropagation()}
+        onKeyDown={(event) => event.stopPropagation()}
+      >
+        {leadTemperatures.map((temperature) => {
+          const Icon = temperatureStyles[temperature].icon;
+          const isActive = lead.temperature === temperature;
+
+          return (
+            <button
+              key={temperature}
+              className={cn(
+                "flex h-6 w-6 items-center justify-center rounded-full text-white/25 transition disabled:cursor-default",
+                isActive ? temperatureStyles[temperature].active : isEditable ? "hover:bg-white/10 hover:text-white/55" : null,
+              )}
+              type="button"
+              onClick={() => {
+                if (isEditable) onChange(lead.id, { temperature });
+              }}
+              disabled={!isEditable}
+              aria-label={`${temperature} lead`}
+              title={temperature}
+            >
+              <Icon className="h-3.5 w-3.5" />
+            </button>
+          );
+        })}
+      </span>
+    );
+  }
+
   if (!leads.length) {
     return (
       <div className="rounded-[28px] border border-white/10 bg-white/[0.05] p-10 text-center shadow-glow backdrop-blur-xl">
@@ -140,6 +182,7 @@ export function LeadTable({
                     <span className={cn("rounded-full px-2.5 py-1 text-[11px] font-medium", statusStyles[lead.status])}>
                       {lead.status}
                     </span>
+                    {temperatureControl(lead, isEditable)}
                   </span>
                   <span className="mt-1 block truncate text-sm text-white/45">{compactDetail(lead)}</span>
                 </span>

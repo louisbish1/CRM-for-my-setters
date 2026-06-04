@@ -9,7 +9,6 @@ begin
   ) then
     create type public.lead_status as enum (
       'New',
-      'Cold',
       'Contacted',
       'Interested',
       'Call Booked',
@@ -19,8 +18,6 @@ begin
   end if;
 end
 $$;
-
-alter type public.lead_status add value if not exists 'Cold' after 'New';
 
 create table if not exists public.approved_users (
   email text primary key,
@@ -37,6 +34,7 @@ create table if not exists public.leads (
   need text,
   estimated_value numeric(12,2),
   status public.lead_status not null default 'New',
+  temperature text not null default 'Neutral' check (temperature in ('Neutral', 'Cold', 'Warm')),
   notes text,
   created_by_user_id uuid not null references auth.users(id),
   created_by_email text not null,
@@ -72,7 +70,14 @@ alter table public.leads add column if not exists created_by_user_id uuid;
 alter table public.leads add column if not exists created_by_email text;
 alter table public.leads add column if not exists created_by_name text;
 alter table public.leads add column if not exists archived boolean not null default false;
+alter table public.leads add column if not exists temperature text not null default 'Neutral';
 alter table public.leads drop column if exists created_by;
+alter table public.leads drop constraint if exists leads_temperature_check;
+alter table public.leads add constraint leads_temperature_check check (temperature in ('Neutral', 'Cold', 'Warm'));
+update public.leads
+set temperature = 'Cold',
+    status = 'New'
+where status::text = 'Cold';
 
 alter table public.approved_users enable row level security;
 alter table public.leads enable row level security;

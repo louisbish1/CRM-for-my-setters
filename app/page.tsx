@@ -14,7 +14,17 @@ import { supabase } from "@/lib/supabase";
 import type { Lead } from "@/lib/types";
 
 const leadSelect =
-  "id, business_name, contact_name, phone, email, need, estimated_value, status, notes, created_by_user_id, created_by_email, created_by_name, archived, created_at";
+  "id, business_name, contact_name, phone, email, need, estimated_value, status, temperature, notes, created_by_user_id, created_by_email, created_by_name, archived, created_at";
+
+function normalizeLead(lead: Lead) {
+  const legacyStatus = lead.status as string;
+
+  return {
+    ...lead,
+    status: legacyStatus === "Cold" ? "New" : lead.status,
+    temperature: lead.temperature || (legacyStatus === "Cold" ? "Cold" : "Neutral"),
+  } satisfies Lead;
+}
 
 async function fetchActiveLeads() {
   const { data } = await supabase
@@ -23,7 +33,7 @@ async function fetchActiveLeads() {
     .eq("archived", false)
     .order("created_at", { ascending: false });
 
-  return (data as Lead[]) || [];
+  return ((data as Lead[]) || []).map(normalizeLead);
 }
 
 export default function DashboardPage() {
@@ -90,7 +100,10 @@ export default function DashboardPage() {
   async function updateLead(
     id: string,
     patch: Partial<
-      Pick<Lead, "business_name" | "contact_name" | "phone" | "email" | "status" | "notes" | "estimated_value" | "need">
+      Pick<
+        Lead,
+        "business_name" | "contact_name" | "phone" | "email" | "status" | "temperature" | "notes" | "estimated_value" | "need"
+      >
     >,
   ) {
     const lead = leads.find((item) => item.id === id);
@@ -166,7 +179,7 @@ export default function DashboardPage() {
             <p className="mt-2 text-sm text-white/50">
               {loading
                 ? "Loading leads..."
-                : `${leads.length} leads · £${pipelineValue.toLocaleString()} pipeline · £${turnoverValue.toLocaleString()} turnover`}
+                : `${leads.length} leads · £${pipelineValue.toLocaleString()} · £${turnoverValue.toLocaleString()} won`}
             </p>
           </div>
         </div>

@@ -39,6 +39,7 @@ export async function POST(request: Request) {
     email: body.email || null,
     need: body.need || null,
     estimated_value: body.estimated_value ? Number(body.estimated_value) : null,
+    temperature: body.temperature || "Neutral",
     notes: body.notes || null,
     created_by_user_id: user.id,
     created_by_email: user.email,
