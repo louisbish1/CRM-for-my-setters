@@ -46,8 +46,16 @@ export async function POST(request: Request) {
     created_by_name: user.user_metadata.full_name || null,
   };
 
-  const { data: lead, error } = await supabase.from("leads").insert(payload).select().single();
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  let { data: lead, error } = await supabase.from("leads").insert(payload).select().single();
+
+  if (error) {
+    const { temperature: _temperature, ...legacyPayload } = payload;
+    const legacyResult = await supabase.from("leads").insert(legacyPayload).select().single();
+    lead = legacyResult.data ? { ...legacyResult.data, temperature: "Neutral" } : null;
+    error = legacyResult.error;
+  }
+
+  if (error || !lead) return NextResponse.json({ error: error?.message || "Could not save lead." }, { status: 400 });
 
   let notificationResult = {
     adminCount: 0,

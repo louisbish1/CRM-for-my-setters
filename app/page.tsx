@@ -15,25 +15,36 @@ import type { Lead } from "@/lib/types";
 
 const leadSelect =
   "id, business_name, contact_name, phone, email, need, estimated_value, status, temperature, notes, created_by_user_id, created_by_email, created_by_name, archived, created_at";
+const legacyLeadSelect =
+  "id, business_name, contact_name, phone, email, need, estimated_value, status, notes, created_by_user_id, created_by_email, created_by_name, archived, created_at";
 
-function normalizeLead(lead: Lead) {
+function normalizeLead(lead: Lead | Omit<Lead, "temperature">) {
   const legacyStatus = lead.status as string;
+  const temperature = "temperature" in lead ? lead.temperature : null;
 
   return {
     ...lead,
     status: legacyStatus === "Cold" ? "New" : lead.status,
-    temperature: lead.temperature || (legacyStatus === "Cold" ? "Cold" : "Neutral"),
+    temperature: temperature || (legacyStatus === "Cold" ? "Cold" : "Neutral"),
   } satisfies Lead;
 }
 
 async function fetchActiveLeads() {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("leads")
     .select(leadSelect)
     .eq("archived", false)
     .order("created_at", { ascending: false });
 
-  return ((data as Lead[]) || []).map(normalizeLead);
+  if (!error) return ((data as Lead[]) || []).map(normalizeLead);
+
+  const { data: legacyData } = await supabase
+    .from("leads")
+    .select(legacyLeadSelect)
+    .eq("archived", false)
+    .order("created_at", { ascending: false });
+
+  return ((legacyData as Omit<Lead, "temperature">[]) || []).map(normalizeLead);
 }
 
 export default function DashboardPage() {
@@ -111,7 +122,14 @@ export default function DashboardPage() {
 
     setLeads((current) => current.map((lead) => (lead.id === id ? { ...lead, ...patch } : lead)));
     if (!id.startsWith("demo-")) {
-      await supabase.from("leads").update(patch).eq("id", id);
+      const { error } = await supabase.from("leads").update(patch).eq("id", id);
+
+      if (error && "temperature" in patch) {
+        const { temperature: _temperature, ...legacyPatch } = patch;
+        if (Object.keys(legacyPatch).length) {
+          await supabase.from("leads").update(legacyPatch).eq("id", id);
+        }
+      }
     }
   }
 
@@ -231,7 +249,7 @@ export default function DashboardPage() {
               </Button>
             </div>
           </div>
-          <AddLeadDialog creatorLabel={userLabel} onCreated={(lead) => setLeads((current) => [lead, ...current])} />
+          <AddLeadDialog creatorLabel={userLabel} onCreated={(lead) => setLeads((current) => [normalizeLead(lead), ...current])} />
         </div>
       </header>
 
