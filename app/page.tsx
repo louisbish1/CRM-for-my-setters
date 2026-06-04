@@ -29,6 +29,13 @@ function normalizeLead(lead: Lead | Omit<Lead, "temperature">) {
   } satisfies Lead;
 }
 
+function leadMatchesSearch(lead: Lead, query: string) {
+  const temperatureAliases = lead.temperature === "Warm" ? "hot warm" : lead.temperature.toLowerCase();
+  const searchableText = [lead.business_name, lead.status, lead.temperature, temperatureAliases].join(" ").toLowerCase();
+
+  return searchableText.includes(query);
+}
+
 async function fetchActiveLeads() {
   const { data, error } = await supabase
     .from("leads")
@@ -175,7 +182,7 @@ export default function DashboardPage() {
     const query = searchQuery.trim().toLowerCase();
     if (!query) return leads;
 
-    return leads.filter((lead) => lead.business_name.toLowerCase().includes(query));
+    return leads.filter((lead) => leadMatchesSearch(lead, query));
   }, [leads, searchQuery]);
   const isSearching = searchQuery.trim().length > 0;
 
@@ -275,9 +282,9 @@ export default function DashboardPage() {
             </button>
           ) : null}
         </div>
-        <p className="px-2 text-xs font-medium text-white/45 sm:shrink-0">
-          {isSearching ? `${filteredLeads.length} of ${leads.length} leads` : `${leads.length} leads`}
-        </p>
+        {isSearching ? (
+          <p className="px-2 text-xs font-medium text-white/45 sm:shrink-0">{filteredLeads.length} found</p>
+        ) : null}
       </section>
 
       <LeadTable
