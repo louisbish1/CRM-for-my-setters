@@ -10,6 +10,7 @@ import { LeadTable } from "@/components/lead-table";
 import { NotificationButton } from "@/components/notification-button";
 import { OnlineUsers } from "@/components/online-users";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { supabase } from "@/lib/supabase";
 import type { Lead } from "@/lib/types";
 
@@ -35,6 +36,7 @@ export default function DashboardPage() {
   const [currentUserEmail, setCurrentUserEmail] = useState("");
   const [userLabel, setUserLabel] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     let mounted = true;
@@ -127,9 +129,16 @@ export default function DashboardPage() {
   }
 
   const totalValue = useMemo(
-    () => leads.reduce((sum, lead) => sum + (lead.estimated_value || 0), 0),
+    () => leads.reduce((sum, lead) => (lead.status === "Lost" ? sum : sum + (lead.estimated_value || 0)), 0),
     [leads],
   );
+
+  const filteredLeads = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return leads;
+
+    return leads.filter((lead) => lead.business_name.toLowerCase().includes(query));
+  }, [leads, searchQuery]);
 
   return (
     <main className="mx-auto min-h-screen w-full max-w-7xl px-3 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] sm:px-6 sm:py-6 lg:px-8">
@@ -201,8 +210,19 @@ export default function DashboardPage() {
         </div>
       </header>
 
+      <div className="mb-4 flex items-center rounded-[28px] border border-white/10 bg-white/[0.05] px-4 py-3 shadow-glow backdrop-blur-xl sm:mb-6 sm:px-5">
+        <Search className="mr-3 h-4 w-4 shrink-0 text-white/35" />
+        <Input
+          className="border-0 bg-transparent px-0 text-white placeholder:text-white/35 focus-visible:ring-0"
+          value={searchQuery}
+          onChange={(event) => setSearchQuery(event.target.value)}
+          placeholder="Search leads by name"
+          aria-label="Search leads by name"
+        />
+      </div>
+
       <LeadTable
-        leads={leads}
+        leads={filteredLeads}
         currentUserId={currentUserId}
         onChange={updateLead}
         onArchive={archiveLead}

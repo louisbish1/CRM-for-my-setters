@@ -9,6 +9,7 @@ begin
   ) then
     create type public.lead_status as enum (
       'New',
+      'Cold',
       'Contacted',
       'Interested',
       'Call Booked',
@@ -18,6 +19,8 @@ begin
   end if;
 end
 $$;
+
+alter type public.lead_status add value if not exists 'Cold' after 'New';
 
 create table if not exists public.approved_users (
   email text primary key,

@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 
 const statusStyles: Record<LeadStatus, string> = {
   New: "bg-white/10 text-white",
+  Cold: "bg-cyan-400/15 text-cyan-200",
   Contacted: "bg-sky-400/15 text-sky-200",
   Interested: "bg-violet-400/15 text-violet-200",
   "Call Booked": "bg-amber-400/15 text-amber-200",
@@ -120,6 +121,7 @@ export function LeadTable({ leads, currentUserId, onChange, onArchive, canArchiv
                         value={lead.business_name}
                         onChange={(event) => onChange(lead.id, { business_name: event.target.value })}
                         onClick={(event) => event.stopPropagation()}
+                        onKeyDown={(event) => event.stopPropagation()}
                         aria-label="Lead name"
                       />
                     ) : (

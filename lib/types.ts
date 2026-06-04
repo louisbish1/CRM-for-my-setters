@@ -1,5 +1,6 @@
 export const leadStatuses = [
   "New",
+  "Cold",
   "Contacted",
   "Interested",
   "Call Booked",
