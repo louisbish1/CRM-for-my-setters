@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 
 const statusStyles: Record<LeadStatus, string> = {
   New: "bg-white/10 text-white",
-  Cold: "bg-cyan-400/15 text-cyan-200",
+  Cold: "bg-zinc-400/15 text-zinc-200",
   Contacted: "bg-sky-400/15 text-sky-200",
   Interested: "bg-violet-400/15 text-violet-200",
   "Call Booked": "bg-amber-400/15 text-amber-200",
@@ -31,9 +31,19 @@ type LeadTableProps = {
   ) => void;
   onArchive: (id: string) => void;
   canArchive: boolean;
+  emptyStateTitle?: string;
+  emptyStateDescription?: string;
 };
 
-export function LeadTable({ leads, currentUserId, onChange, onArchive, canArchive }: LeadTableProps) {
+export function LeadTable({
+  leads,
+  currentUserId,
+  onChange,
+  onArchive,
+  canArchive,
+  emptyStateTitle = "No leads yet",
+  emptyStateDescription = "Add the first lead to start the board.",
+}: LeadTableProps) {
   const pageSize = 10;
   const [page, setPage] = useState(1);
   const [expandedLeadId, setExpandedLeadId] = useState<string | null>(null);
@@ -85,8 +95,8 @@ export function LeadTable({ leads, currentUserId, onChange, onArchive, canArchiv
   if (!leads.length) {
     return (
       <div className="rounded-[28px] border border-white/10 bg-white/[0.05] p-10 text-center shadow-glow backdrop-blur-xl">
-        <p className="text-lg font-medium">No leads yet</p>
-        <p className="mt-2 text-sm text-white/50">Add the first lead to start the board.</p>
+        <p className="text-lg font-medium">{emptyStateTitle}</p>
+        <p className="mt-2 text-sm text-white/50">{emptyStateDescription}</p>
       </div>
     );
   }

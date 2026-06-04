@@ -4,13 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LogOut, RefreshCw, Search } from "lucide-react";
+import { LogOut, RefreshCw, Search, X } from "lucide-react";
 import { AddLeadDialog } from "@/components/add-lead-dialog";
 import { LeadTable } from "@/components/lead-table";
 import { NotificationButton } from "@/components/notification-button";
 import { OnlineUsers } from "@/components/online-users";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { supabase } from "@/lib/supabase";
 import type { Lead } from "@/lib/types";
 
@@ -128,8 +127,16 @@ export default function DashboardPage() {
     }
   }
 
-  const totalValue = useMemo(
-    () => leads.reduce((sum, lead) => (lead.status === "Lost" ? sum : sum + (lead.estimated_value || 0)), 0),
+  const pipelineValue = useMemo(
+    () =>
+      leads.reduce(
+        (sum, lead) => (lead.status === "Lost" || lead.status === "Won" ? sum : sum + (lead.estimated_value || 0)),
+        0,
+      ),
+    [leads],
+  );
+  const turnoverValue = useMemo(
+    () => leads.reduce((sum, lead) => (lead.status === "Won" ? sum + (lead.estimated_value || 0) : sum), 0),
     [leads],
   );
 
@@ -139,6 +146,7 @@ export default function DashboardPage() {
 
     return leads.filter((lead) => lead.business_name.toLowerCase().includes(query));
   }, [leads, searchQuery]);
+  const isSearching = searchQuery.trim().length > 0;
 
   return (
     <main className="mx-auto min-h-screen w-full max-w-7xl px-3 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] sm:px-6 sm:py-6 lg:px-8">
@@ -155,7 +163,11 @@ export default function DashboardPage() {
           <div>
             <p className="text-xs font-medium uppercase tracking-[0.28em] text-white/35">Louis Bish internal board</p>
             <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">CRM Tracker</h1>
-            <p className="mt-2 text-sm text-white/50">{loading ? "Loading leads..." : `${leads.length} leads · £${totalValue.toLocaleString()}`}</p>
+            <p className="mt-2 text-sm text-white/50">
+              {loading
+                ? "Loading leads..."
+                : `${leads.length} leads · £${pipelineValue.toLocaleString()} pipeline · £${turnoverValue.toLocaleString()} turnover`}
+            </p>
           </div>
         </div>
         <div className="flex w-full flex-col items-center gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:justify-end">
@@ -210,16 +222,32 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <div className="mb-4 flex items-center rounded-[28px] border border-white/10 bg-white/[0.05] px-4 py-3 shadow-glow backdrop-blur-xl sm:mb-6 sm:px-5">
-        <Search className="mr-3 h-4 w-4 shrink-0 text-white/35" />
-        <Input
-          className="border-0 bg-transparent px-0 text-white placeholder:text-white/35 focus-visible:ring-0"
-          value={searchQuery}
-          onChange={(event) => setSearchQuery(event.target.value)}
-          placeholder="Search leads by name"
-          aria-label="Search leads by name"
-        />
-      </div>
+      <section className="mb-4 flex flex-col gap-3 rounded-[24px] border border-white/10 bg-white/[0.05] p-3 shadow-glow backdrop-blur-xl sm:mb-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative min-w-0 flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/35" />
+          <input
+            className="h-11 w-full rounded-full border border-white/10 bg-black/20 pl-10 pr-10 text-base text-white outline-none transition placeholder:text-white/35 focus:border-white/25 focus:bg-black/30 sm:text-sm"
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+            placeholder="Search leads by name"
+            aria-label="Search leads by name"
+          />
+          {searchQuery ? (
+            <button
+              className="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-white/35 transition hover:bg-white/10 hover:text-white"
+              type="button"
+              onClick={() => setSearchQuery("")}
+              aria-label="Clear search"
+              title="Clear search"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          ) : null}
+        </div>
+        <p className="px-2 text-xs font-medium text-white/45 sm:shrink-0">
+          {isSearching ? `${filteredLeads.length} of ${leads.length} leads` : `${leads.length} leads`}
+        </p>
+      </section>
 
       <LeadTable
         leads={filteredLeads}
@@ -227,6 +255,8 @@ export default function DashboardPage() {
         onChange={updateLead}
         onArchive={archiveLead}
         canArchive={isAdmin}
+        emptyStateTitle={isSearching ? "No matching leads" : undefined}
+        emptyStateDescription={isSearching ? "Try a different lead name." : undefined}
       />
     </main>
   );
